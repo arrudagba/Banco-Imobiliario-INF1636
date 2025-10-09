@@ -38,7 +38,7 @@ public final class RegraPrisao {
         return false;
     }
 
-    /** (Opcional) 3 duplas seguidas enviam à prisão. */
+    /**  3 duplas seguidas enviam à prisão. */
     public static void verificarTresDuplasConsecutivas(Jogador j, int[] dados, Tabuleiro tabuleiro) {
         if (RegraDados.ehDupla(dados)) {
             j.setDuplasConsecutivas(j.getDuplasConsecutivas() + 1);
