@@ -1,9 +1,9 @@
-package br.seuprojeto.regras;
+package br.com.bancoimobiliario.model;
 
 import java.util.Random;
 
-public final class RegraDados {
-    private RegraDados() {}
+public class Dado {
+	
 
     /** Regra 1: lançar dados (virtual). */
     public static int[] lancarDados(Random rng) {
@@ -16,4 +16,5 @@ public final class RegraDados {
     public static boolean ehDupla(int[] dados) {
         return dados != null && dados.length == 2 && dados[0] == dados[1];
     }
+    
 }
