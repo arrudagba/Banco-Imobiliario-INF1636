@@ -8,20 +8,33 @@ public class CasaPrisaoTest {
     @Test
     public void testEnviarParaPrisao() {
         Jogador jogador = new Jogador("Teste");
-        CasaPrisao prisao = new CasaPrisao(5, "Prisão");
+        CasaVaPrisao prisao = new CasaVaPrisao(26, "VÁ PARA PRISÃO");
         
-        prisao.enviarParaPrisao(jogador);
+        prisao.executarAcao(jogador);
         
         assertTrue(jogador.isPreso());
-        assertEquals(5, jogador.getPosicao());
+        assertEquals(10, jogador.getPosicao());
+        assertEquals(0, jogador.getTentativasPrisao());
+    }
+    
+    @Test
+    public void testVaParaPrisao() {
+        Jogador jogador = new Jogador("Teste");
+        CasaVaPrisao prisao = new CasaVaPrisao(26, "VÁ PARA PRISÃO");
+        
+        prisao.executarAcao(jogador);
+        
+        assertTrue(jogador.isPreso());
+        assertEquals(10, jogador.getPosicao());
         assertEquals(0, jogador.getTentativasPrisao());
     }
     
     @Test
     public void testTentarSairComDadosSucesso() {
         Jogador jogador = new Jogador("Teste");
-        CasaPrisao prisao = new CasaPrisao(5, "Prisão");
-        prisao.enviarParaPrisao(jogador);
+        CasaPrisao prisao = new CasaPrisao(10, "PRISÃO");
+        
+        prisao.executarAcao(jogador);
         
         int[] dupla = {3, 3};
         boolean saiu = prisao.tentarSairComDados(jogador, dupla);
@@ -34,8 +47,8 @@ public class CasaPrisaoTest {
     @Test
     public void testTentarSairComDadosFalha() {
         Jogador jogador = new Jogador("Teste");
-        CasaPrisao prisao = new CasaPrisao(5, "Prisão");
-        prisao.enviarParaPrisao(jogador);
+        CasaPrisao prisao = new CasaPrisao(10, "PRISÃO");
+        prisao.executarAcao(jogador);
         
         int[] naoDupla = {3, 4};
         boolean saiu = prisao.tentarSairComDados(jogador, naoDupla);
@@ -48,10 +61,11 @@ public class CasaPrisaoTest {
     @Test
     public void testUsarCartaSaidaLivre() {
         Jogador jogador = new Jogador("Teste");
-        CasaPrisao prisao = new CasaPrisao(5, "Prisão");
+        CasaPrisao prisao = new CasaPrisao(10, "PRISÃO");
+        prisao.executarAcao(jogador);
+        
         Baralho baralho = new Baralho();
         
-        prisao.enviarParaPrisao(jogador);
         jogador.setCartaSaidaLivre(true);
         
         boolean saiu = prisao.usarCartaSaidaLivre(jogador, baralho);
@@ -70,9 +84,9 @@ public class CasaPrisaoTest {
         int[] dupla2 = {2, 2};
         int[] dupla3 = {3, 3};
         
-        CasaPrisao.verificarTresDuplasConsecutivas(jogador, dupla1, tabuleiro);
-        CasaPrisao.verificarTresDuplasConsecutivas(jogador, dupla2, tabuleiro);
-        CasaPrisao.verificarTresDuplasConsecutivas(jogador, dupla3, tabuleiro);
+        CasaVaPrisao.verificarTresDuplasConsecutivas(jogador, dupla1, tabuleiro);
+        CasaVaPrisao.verificarTresDuplasConsecutivas(jogador, dupla2, tabuleiro);
+        CasaVaPrisao.verificarTresDuplasConsecutivas(jogador, dupla3, tabuleiro);
         
         assertTrue(jogador.isPreso());
     }

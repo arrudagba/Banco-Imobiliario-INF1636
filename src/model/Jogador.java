@@ -44,23 +44,21 @@ public class Jogador {
     public void creditar(int valor) { this.saldo += valor; }
     
     public boolean debitar(int valor) {
-        if (saldo >= valor) {
-            saldo -= valor;
-            return true;
-        }
-        return false;
+        saldo -= valor;
+        return true;
     }
     
     public void addPropriedade(CasaPropriedade propriedade) {
         propriedades.add(propriedade);
     }
     
-    public boolean podeComprarPropriedade(int preco) {
-        return saldo >= preco;
+    public boolean podeComprarPropriedade(int preco, CasaPropriedade propriedade) {
+        return saldo >= preco && (!propriedade.temProprietario());
+        
     }
     
     public boolean comprarPropriedade(CasaPropriedade propriedade) {
-        if (podeComprarPropriedade(propriedade.getPreco())) {
+        if (podeComprarPropriedade(propriedade.getPreco(), propriedade)) {
             debitar(propriedade.getPreco());
             propriedade.setProprietario(this);
             addPropriedade(propriedade);
@@ -70,9 +68,9 @@ public class Jogador {
     }
     
     public boolean construirCasa(CasaPropriedade propriedade) {
-        if (propriedade.getProprietario() == this && saldo >= propriedade.getPrecoCasa()) {
+        if (propriedade.getProprietario() == this && saldo >= propriedade.getPreco()) {
             if (propriedade.construirCasa()) {
-                debitar(propriedade.getPrecoCasa());
+                debitar(propriedade.getPreco());
                 return true;
             }
         }
@@ -80,7 +78,7 @@ public class Jogador {
     }
     
     public boolean pagarAluguel(CasaPropriedade propriedade) {
-        int aluguel = propriedade.calcularAluguel();
+        int aluguel = propriedade.getPreco();
         if (debitar(aluguel)) {
             propriedade.getProprietario().creditar(aluguel);
             return true;

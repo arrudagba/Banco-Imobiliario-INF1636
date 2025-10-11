@@ -8,7 +8,7 @@ public class JogadorTest {
     @Test
     public void testComprarPropriedade() {
         Jogador jogador = new Jogador("Teste");
-        CasaPropriedade propriedade = new CasaPropriedade(1, "Leblon", 100, 50, 10);
+        CasaPropriedade propriedade = new CasaPropriedade(1, "Leblon", 100);
         
         boolean comprou = jogador.comprarPropriedade(propriedade);
         
@@ -21,21 +21,22 @@ public class JogadorTest {
     @Test
     public void testConstruirCasa() {
         Jogador jogador = new Jogador("Teste");
-        CasaPropriedade propriedade = new CasaPropriedade(1, "Leblon", 100, 50, 10);
+        CasaPropriedade propriedade = new CasaPropriedade(1, "Leblon", 100);
         
         jogador.comprarPropriedade(propriedade);
         boolean construiu = jogador.construirCasa(propriedade);
         
         assertTrue(construiu);
         assertEquals(1, propriedade.getNumCasas());
-        assertEquals(3850, jogador.getSaldo());
+        assertEquals(3800, jogador.getSaldo());
     }
     
     @Test
     public void testPagarAluguel() {
+    	
         Jogador proprietario = new Jogador("Proprietario");
         Jogador jogador = new Jogador("Jogador");
-        CasaPropriedade propriedade = new CasaPropriedade(1, "Leblon", 100, 50, 10);
+        CasaPropriedade propriedade = new CasaPropriedade(1, "Leblon", 100);
         
         proprietario.comprarPropriedade(propriedade);
         propriedade.construirCasa();
@@ -46,8 +47,9 @@ public class JogadorTest {
         boolean pagou = jogador.pagarAluguel(propriedade);
         
         assertTrue(pagou);
-        assertEquals(saldoInicialJogador - 20, jogador.getSaldo());
-        assertEquals(saldoInicialProprietario + 20, proprietario.getSaldo());
+        assertEquals(saldoInicialJogador - 100, jogador.getSaldo());
+        assertEquals(saldoInicialProprietario + 100, proprietario.getSaldo());
+        
     }
     
     @Test

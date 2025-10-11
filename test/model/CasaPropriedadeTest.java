@@ -1,31 +1,37 @@
 package model;
 
-import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Test;
 
 public class CasaPropriedadeTest {
-    
+
     @Test
-    public void testCalcularAluguel() {
-        CasaPropriedade propriedade = new CasaPropriedade(1, "Leblon", 100, 50, 10);
-        
-        assertEquals(10, propriedade.calcularAluguel());
-        
-        propriedade.construirCasa();
-        assertEquals(20, propriedade.calcularAluguel());
-        
-        propriedade.construirHotel();
-        assertEquals(100, propriedade.calcularAluguel());
-    }
-    
-    @Test
-    public void testExecutarAcaoSemProprietario() {
+    public void testComprarPropriedade() {
         Jogador jogador = new Jogador("Teste");
-        CasaPropriedade propriedade = new CasaPropriedade(1, "Leblon", 100, 50, 10);
-        
-        propriedade.executarAcao(jogador);
-        
-        assertEquals(jogador, propriedade.getProprietario());
-        assertTrue(jogador.getPropriedades().contains(propriedade));
+        CasaPropriedade casa = new CasaPropriedade(1, "Leblon", 100);
+
+        boolean comprou = jogador.comprarPropriedade(casa);
+
+        assertTrue(comprou);
+        assertEquals(jogador, casa.getProprietario());
+        assertTrue(jogador.getSaldo() < 4000);
+    }
+
+    @Test
+    public void testConstruirCasa() {
+        CasaPropriedade casa = new CasaPropriedade(1, "Leblon", 100);
+        boolean construiu = casa.construirCasa();
+        assertTrue(construiu);
+        assertEquals(1, casa.getNumCasas());
+    }
+
+    @Test
+    public void testConstruirHotel() {
+        CasaPropriedade casa = new CasaPropriedade(1, "Leblon", 100);
+        casa.construirCasa(); // precisa ter pelo menos uma casa
+        boolean construiuHotel = casa.construirHotel();
+        assertTrue(construiuHotel);
+        assertTrue(casa.isTemHotel());
+        assertEquals(0, casa.getNumCasas());
     }
 }

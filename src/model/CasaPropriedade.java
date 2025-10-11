@@ -1,25 +1,21 @@
 package model;
 
 public class CasaPropriedade extends Casa {
+	
     private int preco;
-    private int precoCasa;
-    private int aluguelBase;
     private Jogador proprietario;
     private int numCasas;
     private boolean temHotel;
     
-    public CasaPropriedade(int posicao, String nome, int preco, int precoCasa, int aluguelBase) {
+    public CasaPropriedade(int posicao, String nome, int preco) {
         super(posicao, nome, TipoCasa.PROPRIEDADE);
         this.preco = preco;
-        this.precoCasa = precoCasa;
-        this.aluguelBase = aluguelBase;
         this.proprietario = null;
         this.numCasas = 0;
         this.temHotel = false;
     }
     
     public int getPreco() { return preco; }
-    public int getPrecoCasa() { return precoCasa; }
     public Jogador getProprietario() { return proprietario; }
     public int getNumCasas() { return numCasas; }
     public boolean isTemHotel() { return temHotel; }
@@ -43,12 +39,6 @@ public class CasaPropriedade extends Casa {
         return false;
     }
     
-    public int calcularAluguel() {
-        if (temHotel) {
-            return aluguelBase * 10;
-        }
-        return aluguelBase * (1 + numCasas);
-    }
     
     public boolean temProprietario() {
         return proprietario != null;
@@ -57,7 +47,7 @@ public class CasaPropriedade extends Casa {
     @Override
     public void executarAcao(Jogador jogador) {
         if (!temProprietario()) {
-            if (jogador.podeComprarPropriedade(preco)) {
+            if (jogador.podeComprarPropriedade(preco, this)) {
                 jogador.comprarPropriedade(this);
             }
         } else if (proprietario != jogador && numCasas > 0) {
