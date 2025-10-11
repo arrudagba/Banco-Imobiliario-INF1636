@@ -1,4 +1,4 @@
-package br.com.bancoimobiliario.model;
+package model;
 
 public enum GrupoCor {
 	AZUL,
