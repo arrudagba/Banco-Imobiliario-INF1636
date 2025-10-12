@@ -23,7 +23,6 @@ public class Tabuleiro {
         casas.add(new CasaCompanhia(7, "Companhia de Viação", 200));
         casas.add(new CasaPropriedade(8, "Av. Rebouças", 220));
 
-        // da planilha, em ordem:
         casas.add(new CasaPropriedade(9,  "Av. 9 de Julho", 220));
         casas.add(new CasaPrisao(10, "Prisão"));
 

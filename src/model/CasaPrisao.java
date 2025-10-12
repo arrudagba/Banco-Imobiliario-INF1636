@@ -22,9 +22,10 @@ public class CasaPrisao extends Casa{
         }
         
         if (jogador.getTentativasPrisao() >= MAX_TENTATIVAS) {
-        	//jogador.debitar(50); a multa ao banqueiro não será considerada
+        	// a multa ao banqueiro não será considerada
         	int pos = jogador.getPosicao();
         	int dado = dados[2];
+        	jogador.setPreso(false);
         	jogador.setPosicao(pos + dado);
         }
         
