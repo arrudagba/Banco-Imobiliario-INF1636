@@ -44,24 +44,25 @@ public class Jogador {
     public void creditar(int valor) { this.saldo += valor; }
     
     public boolean debitar(int valor) {
-        saldo -= valor;
-        return true;
+            saldo -= valor;
+            return true;
     }
     
     public void addPropriedade(CasaPropriedade propriedade) {
         propriedades.add(propriedade);
     }
     
-    public boolean podeComprarPropriedade(int preco, CasaPropriedade propriedade) {
-        return saldo >= preco && (!propriedade.temProprietario());
-        
+    public boolean podeComprarPropriedade(Compravel propriedade) {
+        return saldo >= propriedade.getPreco() && !propriedade.temProprietario();
     }
-    
-    public boolean comprarPropriedade(CasaPropriedade propriedade) {
-        if (podeComprarPropriedade(propriedade.getPreco(), propriedade)) {
+
+    public boolean comprarPropriedade(Compravel propriedade) {
+        if (podeComprarPropriedade(propriedade)) {
             debitar(propriedade.getPreco());
             propriedade.setProprietario(this);
-            addPropriedade(propriedade);
+            if (propriedade instanceof CasaPropriedade) {
+                addPropriedade((CasaPropriedade) propriedade);
+            }
             return true;
         }
         return false;
@@ -78,12 +79,31 @@ public class Jogador {
     }
     
     public boolean pagarAluguel(CasaPropriedade propriedade) {
-        int aluguel = propriedade.getPreco();
+        int aluguel = propriedade.getPreco(); // aluguel por enquanto com o valor da casa(como está na planilha)
         if (debitar(aluguel)) {
             propriedade.getProprietario().creditar(aluguel);
             return true;
         }
         return false;
+    }
+    
+    public boolean venderPropriedadeParaBanco(CasaPropriedade propriedade, Banco banco) {
+        if (propriedades.contains(propriedade)) {
+            banco.venderPropriedade(this, propriedade);
+            propriedades.remove(propriedade);
+            return true;
+        }
+        return false;
+    }
+    
+    public boolean tratarFalencia(Banco banco) {
+        for (CasaPropriedade propriedade : new ArrayList<>(propriedades)) {
+            venderPropriedadeParaBanco(propriedade, banco);
+            if (saldo >= 0) {
+                return true;
+            }
+        }
+        return saldo >= 0;
     }
     
     public boolean estaFalido() {

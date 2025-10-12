@@ -6,18 +6,6 @@ import static org.junit.Assert.*;
 public class CasaPrisaoTest {
     
     @Test
-    public void testEnviarParaPrisao() {
-        Jogador jogador = new Jogador("Teste");
-        CasaVaPrisao prisao = new CasaVaPrisao(26, "VÁ PARA PRISÃO");
-        
-        prisao.executarAcao(jogador);
-        
-        assertTrue(jogador.isPreso());
-        assertEquals(10, jogador.getPosicao());
-        assertEquals(0, jogador.getTentativasPrisao());
-    }
-    
-    @Test
     public void testVaParaPrisao() {
         Jogador jogador = new Jogador("Teste");
         CasaVaPrisao prisao = new CasaVaPrisao(26, "VÁ PARA PRISÃO");

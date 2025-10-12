@@ -1,6 +1,6 @@
 package model;
 
-public class CasaPropriedade extends Casa {
+public class CasaPropriedade extends Casa implements Compravel {
 	
     private int preco;
     private Jogador proprietario;
@@ -39,7 +39,6 @@ public class CasaPropriedade extends Casa {
         return false;
     }
     
-    
     public boolean temProprietario() {
         return proprietario != null;
     }
@@ -47,7 +46,7 @@ public class CasaPropriedade extends Casa {
     @Override
     public void executarAcao(Jogador jogador) {
         if (!temProprietario()) {
-            if (jogador.podeComprarPropriedade(preco, this)) {
+            if (jogador.podeComprarPropriedade(this)) {
                 jogador.comprarPropriedade(this);
             }
         } else if (proprietario != jogador && numCasas > 0) {

@@ -1,12 +1,15 @@
 package model;
 
 public class CasaInicio extends Casa {
-    public CasaInicio(int posicao, String nome) {
+    private Banco banco;
+    
+    public CasaInicio(int posicao, String nome, Banco banco) {
         super(posicao, nome, TipoCasa.INICIO);
+        this.banco = banco;
     }
     
     @Override
     public void executarAcao(Jogador jogador) {
-        jogador.creditar(200);
+        banco.pagarHonorarios(jogador);
     }
 }
