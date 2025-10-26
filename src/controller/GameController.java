@@ -2,7 +2,7 @@ package controller;
 
 import model.*;
 import controller.observer.*;
-import view.JanelaInicial;
+import view.JanelaInicialView;
 import view.TabuleiroView;
 
 import java.util.*;
@@ -47,18 +47,18 @@ public class GameController implements ObservadoApi {
     /* ---------- Fluxo de telas ---------- */
     public void start() {
         view.Images.carregar();
-        new JanelaInicial(this).setVisible(true);
+        new JanelaInicialView(this);
     }
 
-    public void iniciarNovaPartida(int qtdJogadores) {
-        // Cria nomes padrão (poderá vir da view no futuro)
-        String[] nomes = new String[qtdJogadores];
-        for (int i = 0; i < qtdJogadores; i++) {
-            nomes[i] = "J" + (i + 1);
+    public void iniciarNovaPartida(String[] nomeJogadores) {
+    	
+    	String[] nomes = new String[nomeJogadores.length];
+        for (int i = 0; i < nomeJogadores.length; i++) {
+            nomes[i] = nomeJogadores[i];
         }
 
         model.iniciarPartida(nomes);
-        //model.inicializarBaralhoChance();
+        // model.inicializarBaralhoChance();
         notifica("estadoAtualizado");
 
         new TabuleiroView(this).setVisible(true);
