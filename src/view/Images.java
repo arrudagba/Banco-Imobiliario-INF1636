@@ -37,12 +37,8 @@ public class Images {
             }
 
             // sorte/revés
-            File sorteRevesDir = new File(base, "sorteReves/");
-            if (sorteRevesDir.exists()) {
-                for (File carta : sorteRevesDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".png"))) {
-                    String nome = carta.getName().replace(".png", "");
-                    hash.put("sorteReves_" + nome, ImageIO.read(carta));
-                }
+            for (int i = 1; i <= 6; i++) {
+                hash.put("chance" + i, ImageIO.read(new File(base, "sorteReves/chance" + i + ".png")));
             }
 
             // territórios

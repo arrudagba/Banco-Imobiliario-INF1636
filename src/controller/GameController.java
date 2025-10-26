@@ -3,7 +3,7 @@ package controller;
 import model.*;
 import controller.observer.*;
 import view.JanelaInicial;
-import view.JanelaTabuleiro;
+import view.TabuleiroView;
 
 import java.util.*;
 
@@ -61,7 +61,7 @@ public class GameController implements ObservadoApi {
         //model.inicializarBaralhoChance();
         notifica("estadoAtualizado");
 
-        new JanelaTabuleiro(this).setVisible(true);
+        new TabuleiroView(this).setVisible(true);
     }
 
     /* ---------- Dados ---------- */
