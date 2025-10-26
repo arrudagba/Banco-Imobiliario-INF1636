@@ -1,5 +1,6 @@
 package model;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,8 +12,11 @@ public class Baralho {
     private Carta ultimaCarta; // última carta sacada (para exibir na tela)
 
     public Baralho(List<Carta> cartasIniciais) {
+        if (cartasIniciais == null) {
+            cartasIniciais = new ArrayList<>();
+        }
         this.cartas = new LinkedList<>(cartasIniciais);
-        Collections.shuffle((List<?>) this.cartas); // embaralha
+        Collections.shuffle((List<?>) this.cartas);
         this.cartaSaidaLivreDisponivel = 1;
         this.ultimaCarta = null;
     }

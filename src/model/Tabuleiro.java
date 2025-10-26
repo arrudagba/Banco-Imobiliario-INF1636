@@ -3,7 +3,7 @@ package model;
 import java.util.ArrayList;
 import java.util.List;
 
-class Tabuleiro {
+public class Tabuleiro {
     private List<Casa> casas;
     private Banco banco;
     

@@ -1,6 +1,6 @@
 package model;
 
- class Carta {
+public class Carta {
     private final String idImagem;   // ex.: "chance12"
     private final String descricao;
     private final TipoCartas tipo;

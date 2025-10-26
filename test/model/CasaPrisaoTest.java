@@ -52,7 +52,7 @@ public class CasaPrisaoTest {
         CasaPrisao prisao = new CasaPrisao(10, "PRISÃO");
         prisao.executarAcao(jogador);
         
-        Baralho baralho = new Baralho();
+        Baralho baralho = new Baralho(null);
         
         jogador.setCartaSaidaLivre(true);
         
