@@ -14,7 +14,7 @@ public class JanelaInicialView implements ActionListener {
     private final JComboBox<String> comboQuantidadeJogadores;
     private final Color corPadrao = new Color(180, 240, 180);
 
-    private int nJogadores = 2;
+    private int nJogadores = 3;
 	private GameController controller;
 
     public JanelaInicialView(GameController controller) {
@@ -48,7 +48,7 @@ public class JanelaInicialView implements ActionListener {
         frame.add(botaoNovaPartida);
 
         // ComboBox de quantidade de jogadores
-        String[] opcoes = {"2 jogadores", "3 jogadores", "4 jogadores", "5 jogadores", "6 jogadores"};
+        String[] opcoes = {"3 jogadores", "4 jogadores", "5 jogadores", "6 jogadores"};
         comboQuantidadeJogadores = new JComboBox<>(opcoes);
         comboQuantidadeJogadores.setBounds(80, 150, 140, 25);
         comboQuantidadeJogadores.addActionListener(this);
