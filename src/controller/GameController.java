@@ -5,7 +5,15 @@ import controller.observer.*;
 import view.JanelaInicialView;
 import view.TabuleiroView;
 
+import java.io.File;
 import java.util.*;
+
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.filechooser.FileSystemView;
+
+import Controller.Historico;
 
 /**
  * Controlador principal do jogo.
@@ -37,6 +45,7 @@ public class GameController implements ObservadoApi {
     /* ---------- Estado local ---------- */
     private int dado1 = 1;
     private int dado2 = 1;
+    private int soma = 2;
 
     /* ---------- Construtor privado ---------- */
     private GameController() {
@@ -67,16 +76,18 @@ public class GameController implements ObservadoApi {
     /* ---------- Dados ---------- */
     public int getDado1() { return dado1; }
     public int getDado2() { return dado2; }
-
+    public int getSoma() {return soma; }
+    
     public void rolarDados() {
         int[] valores = model.lancarDados();
         dado1 = valores[0];
         dado2 = valores[1];
+        soma = valores[2];
         notifica("novoValorDados");
     }
 
     /* ---------- Jogada ---------- */
-    public void processarJogadaComValores(int d1, int d2) {
+    public void processarJogadaComValores(int d1, int d2, int soma) {
         dado1 = clampDado(d1);
         dado2 = clampDado(d2);
 
@@ -111,7 +122,64 @@ public class GameController implements ObservadoApi {
     public Jogador getJogadorDaVez() { return model.getJogadorDaVez(); }
     public Tabuleiro getTabuleiro() { return model.getTabuleiro(); }
     public Carta getUltimaCartaComprada() { return model.sacarCarta(); }
+    
+    
+    // ----- Propriedades do jogador da vez -----
+    public String[] getNomesPropriedadesJogadorDaVez() {
+        Jogador j = model.getJogadorDaVez();
+        if (j == null || j.getPropriedades().isEmpty()) return new String[0];
+        return j.getPropriedades().stream()
+                .map(CasaPropriedade::getNome)
+                .toArray(String[]::new);
+    }
 
+    /** Retorna o preço da propriedade pelo nome */
+    public int getPrecoPropJogadorDaVez(String nome) {
+        CasaPropriedade p = getPropriedadePorNomeJogadorDaVez(nome);
+        return (p == null) ? 0 : p.getPreco();
+    }
+
+    /** Retorna o titular (nome do dono) da propriedade */
+    public String getTitularPropJogadorDaVez(String nome) {
+        CasaPropriedade p = getPropriedadePorNomeJogadorDaVez(nome);
+        if (p == null || p.getProprietario() == null) return "sem titular";
+        return p.getProprietario().getNome();
+    }
+
+    /** Retorna o número de casas */
+    public int getCasasPropJogadorDaVez(String nome) {
+        CasaPropriedade p = getPropriedadePorNomeJogadorDaVez(nome);
+        return (p == null) ? 0 : p.getNumCasas();
+    }
+
+    /** Retorna o número de hotéis */
+    public int getHoteisPropJogadorDaVez(String nome) {
+        CasaPropriedade p = getPropriedadePorNomeJogadorDaVez(nome);
+        return (p == null || !p.isTemHotel()) ? 0 : 1;
+    }
+
+    // ---- helper interno ----
+    private CasaPropriedade getPropriedadePorNomeJogadorDaVez(String nome) {
+        Jogador j = model.getJogadorDaVez();
+        if (j == null) return null;
+        for (CasaPropriedade p : j.getPropriedades()) {
+            if (p.getNome().equalsIgnoreCase(nome)) return p;
+        }
+        return null;
+    }
+
+    public void salvarPartida() {
+    	JFileChooser fileChooser = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
+    	fileChooser.setFileFilter(new FileNameExtensionFilter("*.txt", "txt"));
+    	fileChooser.setDialogTitle("Salvar partida");
+    	fileChooser.setSelectedFile(new File("partida_salva"));
+    	int userSelection = fileChooser.showSaveDialog(TabuleiroView);
+    	if (userSelection == JFileChooser.APPROVE_OPTION) {
+    		Historico.salvarPartida(fileChooser.getSelectedFile() + ".txt", nJogadores, godMode);
+        	JOptionPane.showMessageDialog(frameTabuleiro, "Partida salva com sucesso!", "PARTIDA SALVA", JOptionPane.INFORMATION_MESSAGE);
+    	}
+    }
+    
     /* ---------- Sistema de observadores ---------- */
     private void inicializarEventos() {
         String[] eventos = {
@@ -147,4 +215,6 @@ public class GameController implements ObservadoApi {
             o.atualiza(evento);
         }
     }
+    
+    
 }

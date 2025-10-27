@@ -6,6 +6,7 @@ public class CasaPropriedade extends Casa implements Compravel {
     private Jogador proprietario;
     private int numCasas;
     private boolean temHotel;
+    private int numHotel = 0;
     
     public CasaPropriedade(int posicao, String nome, int preco) {
         super(posicao, nome, TipoCasa.PROPRIEDADE);
@@ -19,6 +20,7 @@ public class CasaPropriedade extends Casa implements Compravel {
     public Jogador getProprietario() { return proprietario; }
     public int getNumCasas() { return numCasas; }
     public boolean isTemHotel() { return temHotel; }
+    public int getNumHotel() { return numHotel; }
     
     public void setProprietario(Jogador proprietario) { this.proprietario = proprietario; }
     
@@ -33,6 +35,7 @@ public class CasaPropriedade extends Casa implements Compravel {
     public boolean construirHotel() {
         if (numCasas >= 1 && !temHotel) {
             temHotel = true;
+            numHotel += 1;
             numCasas = 0;
             return true;
         }
@@ -53,4 +56,6 @@ public class CasaPropriedade extends Casa implements Compravel {
             jogador.pagarAluguel(this);
         }
     }
+    
+    
 }

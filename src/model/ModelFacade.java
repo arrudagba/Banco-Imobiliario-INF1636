@@ -96,4 +96,11 @@ public class ModelFacade {
     public Carta sacarCarta() {
         return baralho.comprarCarta();
     }
+    
+    public String[] getDescricao(int pos) {
+    	return tabuleiro.getDesc(pos);
+    }
+    
+    
+    
 }

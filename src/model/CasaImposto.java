@@ -12,6 +12,7 @@ public class CasaImposto extends Casa {
     
     @Override
     public void executarAcao(Jogador jogador) {
+
         if (jogador.debitar(valor)) {
             banco.receberImposto(valor);
         }

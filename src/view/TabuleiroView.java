@@ -6,15 +6,17 @@ import model.Jogador;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.BufferStrategy;
 import java.util.List;
 
 
-public class TabuleiroView extends Canvas implements Runnable, KeyListener {
+public class TabuleiroView extends JPanel implements Runnable, KeyListener {
 
     private final GameController controller;
-    private final Frame frame;
+    private final JFrame frame;
+    private final int BOTTOM_BAR_H = 80; 
     private final Image tabuleiro;
+    private String[] nomes;
+    private int nJogadores;
     private final Image[] pinos = new Image[6];
     private final Image[] dados = new Image[6];
     private final Color[] coresJogadores = {
@@ -37,15 +39,22 @@ public class TabuleiroView extends Canvas implements Runnable, KeyListener {
     private JButton botaoSalvar;
     private JButton botaoEncerrar;
     private JComboBox<String> comboPropriedades;
+    String[] descricaoDaVez = {""};
 
     public TabuleiroView(GameController controller) {
+    	
         this.controller = controller;
-
-        frame = new Frame("Banco Imobiliário");
+        this.nJogadores = controller.getJogadores().size();
+        this.nomes = controller.getJogadores().stream()
+                .map(Jogador::getNome)
+                .toArray(String[]::new);
+		
+        frame = new JFrame("Banco Imobiliário");
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setSize(WIDTH, HEIGHT);
         frame.setBackground(new Color(180, 240, 180));
         frame.setLayout(null); // layout absoluto
-        frame.add(this);
+        frame.getContentPane().add(this);
         frame.setResizable(false);
         frame.setLocationRelativeTo(null);
 
@@ -58,7 +67,9 @@ public class TabuleiroView extends Canvas implements Runnable, KeyListener {
 
         setFocusable(true);
         addKeyListener(this);
-        setBounds(0, 0, WIDTH, HEIGHT);
+        setBounds(0, 0, WIDTH, HEIGHT); 
+        setLayout(null);
+        setDoubleBuffered(true);
 
         // carregar imagens
         tabuleiro = Images.get("tabuleiro");
@@ -71,7 +82,7 @@ public class TabuleiroView extends Canvas implements Runnable, KeyListener {
             notificacoes[i] = "-";
 
         criarComponentesSwing();
-
+        preencherComboPropriedades();
         frame.setVisible(true);
 
         // iniciar loop
@@ -79,76 +90,91 @@ public class TabuleiroView extends Canvas implements Runnable, KeyListener {
         gameLoop.start();
     }
 
-    private void criarComponentesSwing() {
-        // --- Botão "Lançar Dados" ---
-        botaoLancar = new JButton("Lançar Dados");
-        botaoLancar.setBounds(DIVIDER + 310, 150, 170, 30);
-        botaoLancar.addActionListener(e -> {
-            controller.rolarDados();
+    @Override
+    public void run() {
+        while (running) {
+            repaint();
+            try { Thread.sleep(33); } catch (InterruptedException ignored) {}
+        }
+    }
+
+    public void criarComponentesSwing(){
+    	
+    	// Dados
+    	botaoLancar = new JButton("Lançar Dados");
+        botaoLancar.setBounds(DIVIDER + 320 , 195, 150, 30);
+        botaoLancar.addActionListener(e -> {  
+        	controller.rolarDados();
             int d1 = controller.getDado1();
             int d2 = controller.getDado2();
-            addNotificacao("Jogador lançou: " + d1 + " + " + d2);
-            controller.processarJogadaComValores(d1, d2);
+            int soma = controller.getSoma();
+            addNotificacao("Jogador lançou: " + soma);
+            controller.processarJogadaComValores(d1, d2, soma);
         });
-        frame.add(botaoLancar);
+           
+    	// Salvar Jogo
+        botaoSalvar = new JButton("Salvar Jogo");
+        botaoSalvar.setBounds(DIVIDER + 230, HEIGHT - 85, 150, 30);
+        botaoSalvar.addActionListener(e -> addNotificacao("Jogo salvo."));
+  
 
-        // --- Botão "Salvar" ---
-        botaoSalvar = new JButton("Salvar Partida");
-        botaoSalvar.setBounds(DIVIDER + 310, HEIGHT - 125, 170, 30);
-        botaoSalvar.addActionListener(e -> addNotificacao("Partida salva!"));
-        frame.add(botaoSalvar);
-
-        // --- Botão "Encerrar" ---
-        botaoEncerrar = new JButton("Encerrar Partida");
-        botaoEncerrar.setBounds(DIVIDER + 310, HEIGHT - 85, 170, 30);
+        // Encerrar Jogo
+        botaoEncerrar = new JButton("Encerrar Jogo");
+        botaoEncerrar.setBounds(DIVIDER + 385, HEIGHT - 85, 150, 30); // 10px de espaçamento
         botaoEncerrar.addActionListener(e -> {
             addNotificacao("Partida encerrada.");
             running = false;
             frame.dispose();
         });
-        frame.add(botaoEncerrar);
-
-        // --- ComboBox de propriedades ---
+        
+        // Popriedades
         comboPropriedades = new JComboBox<>();
         comboPropriedades.setBounds(DIVIDER + 45, HEIGHT - 110, 200, 30);
         comboPropriedades.addItem("Selecione uma propriedade...");
         comboPropriedades.addActionListener(e -> {
-            String selecionada = (String) comboPropriedades.getSelectedItem();
-            if (selecionada != null && !selecionada.startsWith("Selecione")) {
-                addNotificacao("Propriedade: " + selecionada);
+        	String selecionada = (String) comboPropriedades.getSelectedItem();
+            if (selecionada != null && !selecionada.startsWith("(")) {
+                descricaoDaVez = new String[]{
+                    "Preço: $" + controller.getPrecoPropJogadorDaVez(selecionada),
+                    "Titular: " + controller.getTitularPropJogadorDaVez(selecionada),
+                    "Casas: " + controller.getCasasPropJogadorDaVez(selecionada),
+                    "Hoteis: " + controller.getHoteisPropJogadorDaVez(selecionada)
+                };
+                addNotificacao("Propriedade selecionada: " + selecionada);
+                repaint();
             }
         });
-        frame.add(comboPropriedades);
+        
+        
+        // Adicionando botoes
+        this.add(botaoLancar);
+        this.add(botaoSalvar);
+        this.add(botaoEncerrar);
+        this.add(comboPropriedades);
     }
-
-    @Override
-    public void run() {
-        createBufferStrategy(2);
-        BufferStrategy bs = getBufferStrategy();
-
-        while (running) {
-            Graphics2D g = (Graphics2D) bs.getDrawGraphics();
-            render(g);
-            g.dispose();
-            bs.show();
-
-            try {
-                Thread.sleep(33);
-            } catch (InterruptedException ignored) {}
+    
+    private void preencherComboPropriedades() {
+        comboPropriedades.removeAllItems();
+        String[] propriedades = controller.getNomesPropriedadesJogadorDaVez();
+        if (propriedades.length == 0) {
+            comboPropriedades.addItem("(sem propriedades)");
+        } else {
+            for (String p : propriedades) comboPropriedades.addItem(p);
         }
     }
 
     private void render(Graphics2D g) {
+    	
         // fundo geral
         g.setColor(new Color(180, 240, 180));
         g.fillRect(0, 0, WIDTH, HEIGHT);
 
         // tabuleiro
         g.drawImage(tabuleiro, 20, 40, 620, 620, this);
-
+        
         // divisor
         g.setColor(Color.DARK_GRAY);
-        g.fillRect(DIVIDER - 2, 0, 4, HEIGHT);
+        g.fillRect(DIVIDER + 15, 0, 4, HEIGHT);
 
         List<Jogador> jogadores = controller.getJogadores();
         int jogadorDaVez = controller.getJogadores().indexOf(controller.getJogadorDaVez());
@@ -156,7 +182,7 @@ public class TabuleiroView extends Canvas implements Runnable, KeyListener {
 
         // saldos
         int saldosX = DIVIDER + 40;
-        int saldosY = 50;
+        int saldosY = 60;
         g.setColor(new Color(210, 230, 210));
         g.fillRect(saldosX - 10, saldosY + 10, 220, 35 * jogadores.size());
         g.setColor(Color.BLACK);
@@ -174,33 +200,36 @@ public class TabuleiroView extends Canvas implements Runnable, KeyListener {
         }
 
         // dados
-        int dadosX = DIVIDER + 325;
-        int dadosY = 70;
+        int dadosX = DIVIDER + 295;
+        int dadosY = 65;
         g.setColor(Color.BLACK);
         g.setFont(new Font("SansSerif", Font.BOLD, 16));
-        g.drawString("Vez de: " + controller.getJogadorDaVez().getNome(), dadosX - 10, dadosY - 10);
+        g.drawString("Vez de: " + controller.getJogadorDaVez().getNome(), dadosX + 10, dadosY - 5);
 
         g.setColor(corAtual);
-        g.fillRect(dadosX - 10, dadosY - 10, 180, 120);
+        g.fillRect(dadosX, dadosY, 200, 120);
         g.setColor(Color.BLACK);
-        g.drawRect(dadosX - 10, dadosY - 10, 180, 120);
+        g.drawRect(dadosX, dadosY, 200, 120);
 
         int d1 = controller.getDado1();
         int d2 = controller.getDado2();
-        if (dados[d1 - 1] != null) g.drawImage(dados[d1 - 1], dadosX, dadosY, 80, 80, this);
-        if (dados[d2 - 1] != null) g.drawImage(dados[d2 - 1], dadosX + 90, dadosY, 80, 80, this);
+        if (dados[d1 - 1] != null) g.drawImage(dados[d1 - 1], dadosX + 15, dadosY + 20, 80, 80, this);
+        if (dados[d2 - 1] != null) g.drawImage(dados[d2 - 1], dadosX + 100, dadosY + 20, 80, 80, this);
+        
+        
 
+        
         // notificações
-        int notifX = DIVIDER + 280;
-        int notifY = HEIGHT - 350;
+        int notifX = DIVIDER + 295;
+        int notifY = HEIGHT - 400;
         g.setColor(Color.BLACK);
         g.setFont(new Font("SansSerif", Font.BOLD, 16));
         g.drawString("Notificações:", notifX, notifY - 5);
 
         g.setColor(new Color(210, 230, 210));
-        g.fillRect(notifX, notifY, 250, 230);
+        g.fillRect(notifX, notifY, 200, 230);
         g.setColor(Color.BLACK);
-        g.drawRect(notifX, notifY, 250, 230);
+        g.drawRect(notifX, notifY, 200, 230);
 
         int ny = notifY + 22;
         g.setFont(new Font("SansSerif", Font.PLAIN, 10));
@@ -217,6 +246,19 @@ public class TabuleiroView extends Canvas implements Runnable, KeyListener {
             int y = getCasaY(pos, i);
             g.drawImage(pinos[i], x, y, 15, 22, this);
         }
+        
+        for (int i=0; i< descricaoDaVez.length; i++) {
+			if (i==1 && ! descricaoDaVez[i].equals("Titular: sem titular")) {  // mudar para a cor do jogador titular
+				for (int j=0; j< nJogadores; j++) {
+					if (("Titular: " + nomes[j]).equals(descricaoDaVez[i])) {
+						g.setColor(coresJogadores[j]);
+						break;
+					}
+				}
+			}
+			g.drawString(descricaoDaVez[i], 735, 590 + i*20);
+			g.setColor(Color.BLACK);
+		}
     }
 
     private Color corJogador(Jogador j) {
@@ -239,6 +281,13 @@ public class TabuleiroView extends Canvas implements Runnable, KeyListener {
     private int getCasaY(int pos, int offset) {
         int[] Y = {620,620,620,620,620,620,620,620,620,620,560,500,440,380,320,260,200,140,80,20,20};
         return 40 + Y[pos % Y.length];
+    }
+    
+    @Override
+    protected void paintComponent(Graphics g0) {
+        super.paintComponent(g0);
+        Graphics2D g = (Graphics2D) g0;
+        render(g); // reaproveita seu método de desenho atual
     }
 
     // eventos de teclado (não usados)
