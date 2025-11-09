@@ -98,9 +98,50 @@ public class ModelFacade {
     }
     
     public String[] getDescricao(int pos) {
-    	return tabuleiro.getDesc(pos);
+        return tabuleiro.getDesc(pos);
+    }
+    
+    public String[] getNomesTodasPropriedades() {
+        java.util.List<String> nomes = new java.util.ArrayList<>();
+        for (int i = 0; i < tabuleiro.getTamanho(); i++) {
+            Casa c = tabuleiro.getCasa(i);
+            if (c instanceof CasaPropriedade) {
+                CasaPropriedade p = (CasaPropriedade) c;
+                nomes.add(p.getNome());
+            }
+        }
+        return nomes.toArray(new String[0]);
     }
     
     
+    // Salvar jogo
+    
+    public static class SaveState implements java.io.Serializable {
+        public java.util.List<PlayerState> players = new java.util.ArrayList<>();
+        public int currentIndex;
+    }
+    public static class PlayerState implements java.io.Serializable {
+        public String nome;
+        public int saldo;
+        public int posicao;
+        public java.util.List<String> propriedades = new java.util.ArrayList<>();
+    }
+
+    // Cria o snapshot do estado atual
+    public SaveState snapshot() {
+        SaveState s = new SaveState();
+        s.currentIndex = jogadorDaVez;
+        for (Jogador j : jogadores) {
+            PlayerState ps = new PlayerState();
+            ps.nome = j.getNome();
+            ps.saldo = j.getSaldo();
+            ps.posicao = j.getPosicao();
+            for (CasaPropriedade p : j.getPropriedades()) {
+                ps.propriedades.add(p.getNome());
+            }
+            s.players.add(ps);
+        }
+        return s;
+    }
     
 }

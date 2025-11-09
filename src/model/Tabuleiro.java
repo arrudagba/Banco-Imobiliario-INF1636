@@ -13,6 +13,7 @@ public class Tabuleiro {
     }
 
     private void inicializarTabuleiro() {
+    	
         casas.add(new CasaInicio(1, "PARTIDA", banco));
         casas.add(new CasaPropriedade(2, "Leblon", 100));
         casas.add(new CasaPropriedade(3, "Av. Presidente Vargas", 60));
@@ -56,6 +57,7 @@ public class Tabuleiro {
         casas.add(new CasaPropriedade(32, "Ipanema", 300));
         casas.add(new CasaPropriedade(33, "Jardim Paulista", 280));
         casas.add(new CasaPropriedade(34, "Brooklin", 260));
+        
     }
 
     public Casa getCasa(int posicao) {
@@ -89,7 +91,7 @@ public class Tabuleiro {
         return casas.size();
     }
 
-    static public String[] getDesc(int pos) {
+    public String[] getDesc(int pos) {
         if (pos < 0 || pos >= casas.size()) return new String[]{""};
 
         Casa c = casas.get(pos);
@@ -103,14 +105,8 @@ public class Tabuleiro {
             descricao[3] = "Hotéis: " + t.getNumHotel();
             return descricao;
 
-        } else if (c instanceof CasaCompanhia) {
-            CasaCompanhia cp = (CasaCompanhia) c;
-            String[] descricao = new String[2];
-            descricao[0] = "Preço: $" + cp.getPreco();
-            descricao[1] = "Titular: " + (cp.getProprietario() == null ? "sem titular" : cp.getProprietario().getNome());
-            return descricao;
-        }
-
+        } 
+        
         return new String[]{""};
     }
 }

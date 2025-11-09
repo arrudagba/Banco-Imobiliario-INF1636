@@ -5,15 +5,9 @@ import controller.observer.*;
 import view.JanelaInicialView;
 import view.TabuleiroView;
 
-import java.io.File;
 import java.util.*;
 
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.filechooser.FileSystemView;
 
-import Controller.Historico;
 
 /**
  * Controlador principal do jogo.
@@ -88,6 +82,7 @@ public class GameController implements ObservadoApi {
 
     /* ---------- Jogada ---------- */
     public void processarJogadaComValores(int d1, int d2, int soma) {
+    	
         dado1 = clampDado(d1);
         dado2 = clampDado(d2);
 
@@ -125,12 +120,13 @@ public class GameController implements ObservadoApi {
     
     
     // ----- Propriedades do jogador da vez -----
-    public String[] getNomesPropriedadesJogadorDaVez() {
-        Jogador j = model.getJogadorDaVez();
-        if (j == null || j.getPropriedades().isEmpty()) return new String[0];
-        return j.getPropriedades().stream()
-                .map(CasaPropriedade::getNome)
-                .toArray(String[]::new);
+    
+    public String[] getDescricao(int pos) {
+        return model.getDescricao(pos);
+    }
+    
+    public String[] getNomesTodasPropriedades() {
+        return model.getNomesTodasPropriedades();
     }
 
     /** Retorna o preço da propriedade pelo nome */
@@ -168,16 +164,50 @@ public class GameController implements ObservadoApi {
         return null;
     }
 
-    public void salvarPartida() {
-    	JFileChooser fileChooser = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
-    	fileChooser.setFileFilter(new FileNameExtensionFilter("*.txt", "txt"));
-    	fileChooser.setDialogTitle("Salvar partida");
-    	fileChooser.setSelectedFile(new File("partida_salva"));
-    	int userSelection = fileChooser.showSaveDialog(TabuleiroView);
-    	if (userSelection == JFileChooser.APPROVE_OPTION) {
-    		Historico.salvarPartida(fileChooser.getSelectedFile() + ".txt", nJogadores, godMode);
-        	JOptionPane.showMessageDialog(frameTabuleiro, "Partida salva com sucesso!", "PARTIDA SALVA", JOptionPane.INFORMATION_MESSAGE);
-    	}
+    // Salvar partida
+    
+    public java.nio.file.Path salvarJogo() {
+        try {
+            var home = System.getProperty("user.home");
+            var dir  = java.nio.file.Paths.get(home, "BancoImobiliario", "saves");
+            java.nio.file.Files.createDirectories(dir);
+
+            var file = dir.resolve("save-" + System.currentTimeMillis() + ".json");
+
+            var state = model.snapshot();
+            var json  = toJson(state); // sem libs
+
+            java.nio.file.Files.writeString(file, json, java.nio.charset.StandardCharsets.UTF_8);
+            return file;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
+    // JSON manual suficiente p/ o snapshot
+    private String toJson(ModelFacade.SaveState s) {
+        var sb = new StringBuilder();
+        sb.append("{\"currentIndex\":").append(s.currentIndex).append(",\"players\":[");
+        for (int i = 0; i < s.players.size(); i++) {
+            var p = s.players.get(i);
+            sb.append("{\"nome\":\"").append(escape(p.nome)).append("\",")
+              .append("\"saldo\":").append(p.saldo).append(",")
+              .append("\"posicao\":").append(p.posicao).append(",")
+              .append("\"propriedades\":[");
+            for (int j = 0; j < p.propriedades.size(); j++) {
+                sb.append("\"").append(escape(p.propriedades.get(j))).append("\"");
+                if (j + 1 < p.propriedades.size()) sb.append(",");
+            }
+            sb.append("]}");
+            if (i + 1 < s.players.size()) sb.append(",");
+        }
+        sb.append("]}");
+        return sb.toString();
+    }
+
+    private String escape(String s) {
+        return s == null ? "" : s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
     
     /* ---------- Sistema de observadores ---------- */

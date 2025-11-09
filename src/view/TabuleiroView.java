@@ -110,12 +110,18 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
             int soma = controller.getSoma();
             addNotificacao("Jogador lançou: " + soma);
             controller.processarJogadaComValores(d1, d2, soma);
+            preencherComboPropriedades();
+            repaint();
         });
            
     	// Salvar Jogo
         botaoSalvar = new JButton("Salvar Jogo");
         botaoSalvar.setBounds(DIVIDER + 230, HEIGHT - 85, 150, 30);
-        botaoSalvar.addActionListener(e -> addNotificacao("Jogo salvo."));
+        botaoSalvar.addActionListener(e ->{
+        		var path = controller.salvarJogo();
+        		if (path != null) addNotificacao("Jogo salvo em: " + path.toString());
+        		else addNotificacao("Falha ao salvar jogo.");
+        });
   
 
         // Encerrar Jogo
@@ -129,19 +135,17 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
         
         // Popriedades
         comboPropriedades = new JComboBox<>();
-        comboPropriedades.setBounds(DIVIDER + 45, HEIGHT - 110, 200, 30);
+        comboPropriedades.setBounds(DIVIDER + 50, HEIGHT - 270, 200, 30);
         comboPropriedades.addItem("Selecione uma propriedade...");
         comboPropriedades.addActionListener(e -> {
         	String selecionada = (String) comboPropriedades.getSelectedItem();
             if (selecionada != null && !selecionada.startsWith("(")) {
-                descricaoDaVez = new String[]{
-                    "Preço: $" + controller.getPrecoPropJogadorDaVez(selecionada),
-                    "Titular: " + controller.getTitularPropJogadorDaVez(selecionada),
-                    "Casas: " + controller.getCasasPropJogadorDaVez(selecionada),
-                    "Hoteis: " + controller.getHoteisPropJogadorDaVez(selecionada)
-                };
-                addNotificacao("Propriedade selecionada: " + selecionada);
-                repaint();
+                int pos = posicaoDaCasaPorNome(selecionada);
+                if (pos >= 0) {
+                    descricaoDaVez = controller.getDescricao(pos);
+                    addNotificacao("Propriedade: " + selecionada);
+                    repaint();
+                }
             }
         });
         
@@ -155,14 +159,23 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
     
     private void preencherComboPropriedades() {
         comboPropriedades.removeAllItems();
-        String[] propriedades = controller.getNomesPropriedadesJogadorDaVez();
+        String[] propriedades = controller.getNomesTodasPropriedades(); // <-- aqui
         if (propriedades.length == 0) {
             comboPropriedades.addItem("(sem propriedades)");
         } else {
             for (String p : propriedades) comboPropriedades.addItem(p);
+            comboPropriedades.setSelectedIndex(0); // opcional
         }
     }
 
+    private int posicaoDaCasaPorNome(String nome) {
+        int n = controller.getTabuleiro().getTamanho();
+        for (int pos = 0; pos < n; pos++) {
+            if (controller.getTabuleiro().getCasa(pos).getNome().equals(nome)) return pos;
+        }
+        return -1;
+    }
+    
     private void render(Graphics2D g) {
     	
         // fundo geral
@@ -171,6 +184,7 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
 
         // tabuleiro
         g.drawImage(tabuleiro, 20, 40, 620, 620, this);
+        
         
         // divisor
         g.setColor(Color.DARK_GRAY);
@@ -216,7 +230,6 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
         if (dados[d1 - 1] != null) g.drawImage(dados[d1 - 1], dadosX + 15, dadosY + 20, 80, 80, this);
         if (dados[d2 - 1] != null) g.drawImage(dados[d2 - 1], dadosX + 100, dadosY + 20, 80, 80, this);
         
-        
 
         
         // notificações
@@ -247,6 +260,8 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
             g.drawImage(pinos[i], x, y, 15, 22, this);
         }
         
+        
+        
         for (int i=0; i< descricaoDaVez.length; i++) {
 			if (i==1 && ! descricaoDaVez[i].equals("Titular: sem titular")) {  // mudar para a cor do jogador titular
 				for (int j=0; j< nJogadores; j++) {
@@ -256,7 +271,7 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
 					}
 				}
 			}
-			g.drawString(descricaoDaVez[i], 735, 590 + i*20);
+			g.drawString(descricaoDaVez[i], 740, 350 + i*20);
 			g.setColor(Color.BLACK);
 		}
     }
