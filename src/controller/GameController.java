@@ -10,6 +10,7 @@ import java.util.*;
 
 
 /**
+
  * Controlador principal do jogo.
  *
  * Responsável por coordenar a comunicação entre a View e o ModelFacade.
@@ -21,7 +22,9 @@ import java.util.*;
  *  - Solicita ao ModelFacade o deslocamento e estado do jogo
  *  - Gera e registra cartas Sorte/Revés
  *  - Notifica observadores
+ 
  */
+
 public class GameController implements ObservadoApi {
 
     /* ---------- Singleton ---------- */
@@ -120,7 +123,7 @@ public class GameController implements ObservadoApi {
     
     
     // ----- Propriedades do jogador da vez -----
-    
+   
     public String[] getDescricao(int pos) {
         return model.getDescricao(pos);
     }
@@ -179,7 +182,8 @@ public class GameController implements ObservadoApi {
 
             java.nio.file.Files.writeString(file, json, java.nio.charset.StandardCharsets.UTF_8);
             return file;
-        } catch (Exception ex) {
+        } 
+        catch (Exception ex) {
             ex.printStackTrace();
             return null;
         }
@@ -187,6 +191,7 @@ public class GameController implements ObservadoApi {
 
     // JSON manual suficiente p/ o snapshot
     private String toJson(ModelFacade.SaveState s) {
+    	
         var sb = new StringBuilder();
         sb.append("{\"currentIndex\":").append(s.currentIndex).append(",\"players\":[");
         for (int i = 0; i < s.players.size(); i++) {
@@ -204,13 +209,26 @@ public class GameController implements ObservadoApi {
         }
         sb.append("]}");
         return sb.toString();
+
     }
 
     private String escape(String s) {
         return s == null ? "" : s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
     
-    /* ---------- Sistema de observadores ---------- */
+    /* - Manipulação de dados */
+    
+    private boolean modoManual;
+
+    public void setModoManual(boolean valor) {
+        this.modoManual = valor;
+    }
+    
+    public boolean isModoManual() {
+        return modoManual;
+    }
+    
+    /* - Sistema de observadores */
     private void inicializarEventos() {
         String[] eventos = {
             "novoValorDados",

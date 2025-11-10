@@ -6,6 +6,7 @@ import model.Jogador;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.lang.ModuleLayer.Controller;
 import java.util.List;
 
 
@@ -40,6 +41,10 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
     private JButton botaoEncerrar;
     private JComboBox<String> comboPropriedades;
     String[] descricaoDaVez = {""};
+    
+    // Dados
+    private JComboBox<Integer> comboDado1;
+    private JComboBox<Integer> comboDado2;
 
     public TabuleiroView(GameController controller) {
     	
@@ -100,16 +105,46 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
 
     public void criarComponentesSwing(){
     	
+    	// Combos de dados (só aparecem se modo manual estiver ativo)
+    	if (controller.isModoManual()) {
+    	    comboDado1 = new JComboBox<>();
+    	    comboDado2 = new JComboBox<>();
+
+    	    for (int i = 1; i <= 6; i++) {
+    	        comboDado1.addItem(i);
+    	        comboDado2.addItem(i);
+    	    }
+
+    	    comboDado1.setBounds(DIVIDER + 320, 240, 60, 30);
+    	    comboDado2.setBounds(DIVIDER + 410, 240, 60, 30);
+
+    	    this.add(comboDado1);
+    	    this.add(comboDado2);
+    	}
+    	
     	// Dados
     	botaoLancar = new JButton("Lançar Dados");
         botaoLancar.setBounds(DIVIDER + 320 , 195, 150, 30);
         botaoLancar.addActionListener(e -> {  
-        	controller.rolarDados();
-            int d1 = controller.getDado1();
-            int d2 = controller.getDado2();
-            int soma = controller.getSoma();
-            addNotificacao("Jogador lançou: " + soma);
-            controller.processarJogadaComValores(d1, d2, soma);
+        	if (controller.isModoManual()) {
+        		
+        		int d1 = (Integer) comboDado1.getSelectedItem();
+                int d2 = (Integer) comboDado2.getSelectedItem();
+                int soma = d1 + d2;
+                addNotificacao("Jogador escolheu dados: " + soma);
+                controller.processarJogadaComValores(d1, d2, soma);
+                
+        	}
+        	else {
+        		controller.rolarDados();
+        		Jogador player = controller.getJogadorDaVez();
+                int d1 = controller.getDado1();
+                int d2 = controller.getDado2();
+                int soma = controller.getSoma();
+                addNotificacao(player.getNome() + " lançou: " + soma);
+                controller.processarJogadaComValores(d1, d2, soma);
+        	}
+        	
             preencherComboPropriedades();
             repaint();
         });
@@ -141,11 +176,12 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
         	String selecionada = (String) comboPropriedades.getSelectedItem();
             if (selecionada != null && !selecionada.startsWith("(")) {
                 int pos = posicaoDaCasaPorNome(selecionada);
+                
                 if (pos >= 0) {
-                    descricaoDaVez = controller.getDescricao(pos);
-                    addNotificacao("Propriedade: " + selecionada);
+                    descricaoDaVez = controller.getDescricao(pos);       
                     repaint();
                 }
+                
             }
         });
         
@@ -184,8 +220,7 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
 
         // tabuleiro
         g.drawImage(tabuleiro, 20, 40, 620, 620, this);
-        
-        
+          
         // divisor
         g.setColor(Color.DARK_GRAY);
         g.fillRect(DIVIDER + 15, 0, 4, HEIGHT);

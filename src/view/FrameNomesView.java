@@ -119,6 +119,8 @@ public class FrameNomesView implements ActionListener {
                 setNomes.add(nome);
                 nomes[i] = nome;
             }
+            
+            controller.setModoManual(godModeBox.isSelected());
 
             controller.iniciarNovaPartida(nomes);
             frame.dispose();
