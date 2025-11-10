@@ -102,6 +102,7 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
     public void criarComponentesSwing(){
     	
     	// Combos de dados (só aparecem se modo manual estiver ativo)
+    	
     	if (controller.isModoManual()) {
     	    comboDado1 = new JComboBox<>();
     	    comboDado2 = new JComboBox<>();
@@ -127,7 +128,7 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
         		
         		int d1 = (Integer) comboDado1.getSelectedItem();
                 int d2 = (Integer) comboDado2.getSelectedItem();
-                int soma = d1 + d2;
+                int soma = controller.getSoma();
                 addNotificacao("Jogador escolheu dados: " + soma);
                 controller.processarJogadaComValores(d1, d2, soma);
                 moverJogadorEProcessarCasa(player, soma);
@@ -169,7 +170,7 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
         
         // Propriedades
         comboPropriedades = new JComboBox<>();
-        comboPropriedades.setBounds(DIVIDER + 50, HEIGHT - 270, 200, 30);
+        comboPropriedades.setBounds(DIVIDER + 50, HEIGHT - 420, 200, 30);
         comboPropriedades.addItem("Selecione uma propriedade...");
         comboPropriedades.addActionListener(e -> {
             String selecionada = (String) comboPropriedades.getSelectedItem();
@@ -576,25 +577,33 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
     }
 
     private int getCasaX(int pos, int offset) {
-        int[] coordenadasX = {
-            557, 505, 460, 410, 360, 310, 260, 210, 165, 115,  // inferior (0-9)
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,           // esquerdo (10-19)
-            30, 115, 165, 210, 260, 310, 360, 410, 460, 505,  // superior (20-29)
-            557, 575, 575, 575                                 // direito (30-33)
+        int[] X = {
+            // INFERIOR (0–9): direita -> esquerda
+            560, 500, 440, 380, 320, 260, 200, 140, 80, 20,
+            // ESQUERDA (10–19): baixo -> cima
+            20, 20, 20, 20, 20, 20, 20, 20, 20, 20,
+            // SUPERIOR (20–29): esquerda -> direita
+            80, 140, 200, 260, 320, 380, 440, 500, 560, 600,
+            // DIREITA (30–39): cima -> baixo
+            600, 600, 600, 600, 600, 600, 600, 600, 600, 600
         };
-        if (pos >= coordenadasX.length) pos = pos % coordenadasX.length;
-        return 20 + coordenadasX[pos] + (offset % 3) * 15;
+        pos = pos % X.length;
+        return 40 + X[pos] + (offset % 3) * 15;
     }
 
     private int getCasaY(int pos, int offset) {
-        int[] coordenadasY = {
-            570, 600, 600, 600, 600, 600, 600, 600, 600, 600,  // inferior (0-9)
-            570, 530, 475, 430, 380, 325, 275, 235, 180, 135,  // esquerdo (10-19)
-            55, 55, 55, 55, 55, 55, 55, 55, 55, 55,           // superior (20-29)
-            55, 135, 180, 235                                  // direito (30-33)
+        int[] Y = {
+            // INFERIOR (0–9)
+            620, 620, 620, 620, 620, 620, 620, 620, 620, 620,
+            // ESQUERDA (10–19)
+            560, 500, 440, 380, 320, 260, 200, 140, 80, 20,
+            // SUPERIOR (20–29)
+            20, 20, 20, 20, 20, 20, 20, 20, 20, 20,
+            // DIREITA (30–39)
+            80, 140, 200, 260, 320, 380, 440, 500, 560, 620
         };
-        if (pos >= coordenadasY.length) pos = pos % coordenadasY.length;
-        return 40 + coordenadasY[pos] + (offset / 3) * 8;
+        pos = pos % Y.length;
+        return 60 + Y[pos] + (offset / 3) * 8;
     }
 
     @Override
