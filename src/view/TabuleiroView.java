@@ -1,6 +1,7 @@
 package view;
 
 import controller.GameController;
+import controller.observer.ObservadorApi;
 import model.*;
 
 import javax.swing.*;
@@ -10,7 +11,7 @@ import java.awt.event.*;
 import java.lang.ModuleLayer.Controller;
 import java.util.List;
 
-public class TabuleiroView extends JPanel implements Runnable, KeyListener {
+public class TabuleiroView extends JPanel implements Runnable, KeyListener, ObservadorApi {
 
     private final GameController controller;
     private final JFrame frame;
@@ -88,10 +89,37 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
 
         criarComponentesSwing();
         preencherComboPropriedades();
+        registrarObservadores();
         frame.setVisible(true);
 
         gameLoop = new Thread(this);
         gameLoop.start();
+    }
+    
+    /** Registra esta View como observadora dos eventos do Controller */
+    private void registrarObservadores() {
+        controller.registraObservador("novoValorDados", this);
+        controller.registraObservador("novaPosJogador", this);
+        controller.registraObservador("novaCarta", this);
+        controller.registraObservador("passouVez", this);
+        controller.registraObservador("estadoAtualizado", this);
+        controller.registraObservador("oferecerCartaSaidaLivre", this);
+        controller.registraObservador("usouSaidaLivre", this);
+        controller.registraObservador("saiuPrisaoDupla", this);
+        controller.registraObservador("saiuPrisao3Tentativas", this);
+        controller.registraObservador("tentativaPrisaoFalhou", this);
+        controller.registraObservador("dupla", this);
+        controller.registraObservador("prisao", this);
+        controller.registraObservador("passouInicio", this);
+        controller.registraObservador("cairamPropriedade", this);
+        controller.registraObservador("cairamCompanhia", this);
+        controller.registraObservador("pagouImposto", this);
+        controller.registraObservador("recebeuDividendos", this);
+        controller.registraObservador("cartaPrisao", this);
+        controller.registraObservador("cartaInicio", this);
+        controller.registraObservador("cartaSaidaLivre", this);
+        controller.registraObservador("cartaMonetaria", this);
+        controller.registraObservador("fimDoJogo", this);
     }
 
     @Override
@@ -126,15 +154,15 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
     	botaoLancar = new JButton("Lançar Dados");
         botaoLancar.setBounds(DIVIDER + 320 , 195, 150, 30);
         botaoLancar.addActionListener(e -> {
-            // IMPORTANTE: Pegar jogador atual no momento do clique!
-            Jogador jogadorAtual = controller.getJogadorDaVez();
-            
-            // Verificar se está na prisão
-            if (jogadorAtual.isPreso()) {
-                tratarJogadorNaPrisao(jogadorAtual);
-            } else {
-                tratarJogadaNormal(jogadorAtual);
+            // Define dados se modo manual
+            if (controller.isModoManual()) {
+                int d1 = (Integer) comboDado1.getSelectedItem();
+                int d2 = (Integer) comboDado2.getSelectedItem();
+                controller.setDadosManuais(d1, d2);
             }
+            
+            // Controller processa toda a lógica
+            controller.processarJogada();
             
             preencherComboPropriedades();
             repaint();
@@ -193,210 +221,174 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
         this.add(comboPropriedades);
         this.add(scrollNotificacoes);
     }
-
-
-
-    /** Trata jogador na prisão */
-    private void tratarJogadorNaPrisao(Jogador jogador) {
-        // Verificar se tem carta de saída livre
-        if (jogador.isCartaSaidaLivre()) {
-            int resp = JOptionPane.showConfirmDialog(
-                frame,
-                "Você tem uma carta de Saída Livre. Deseja usá-la?",
-                "Prisão",
-                JOptionPane.YES_NO_OPTION
-            );
-            if (resp == JOptionPane.YES_OPTION) {
-                jogador.setCartaSaidaLivre(false);
-                jogador.setPreso(false);
-                jogador.setTentativasPrisao(0);
-                addNotificacao(jogador.getNome() + " usou carta de Saída Livre!");
-                tratarJogadaNormal(jogador);
-                return;
-            }
-        }
-        
-        // Lançar dados para tentar sair
-        if (controller.isModoManual()) {
-            int d1 = (Integer) comboDado1.getSelectedItem();
-            int d2 = (Integer) comboDado2.getSelectedItem();
-            int[] dados = {d1, d2, d1 + d2};
-            addNotificacao(jogador.getNome() + " (PRESO) lançou: " + d1 + " e " + d2);
-            
-            // Usar método da CasaPrisao
-            Casa casaPrisao = controller.getTabuleiro().getCasaPrisao();
-            if (casaPrisao instanceof CasaPrisao) {
-                boolean conseguiuSair = ((CasaPrisao) casaPrisao).tentarSairComDados(jogador, dados);
-                if (conseguiuSair) {
-                    addNotificacao("Tirou dupla! Saiu da prisão!");
-                    moverJogador(jogador, d1 + d2);
-                } else if (!jogador.isPreso()) {
-                    // Saiu após 3 tentativas
-                    addNotificacao("3 tentativas! Saiu da prisão e deve mover.");
-                    moverJogador(jogador, d1 + d2);
-                } else {
-                    addNotificacao("Não tirou dupla. Tentativa " + jogador.getTentativasPrisao() + "/3");
-                }
-            }
-        } else {
-            controller.rolarDados();
-            int d1 = controller.getDado1();
-            int d2 = controller.getDado2();
-            int[] dados = {d1, d2, d1 + d2};
-            addNotificacao(jogador.getNome() + " (PRESO) lançou: " + d1 + " e " + d2);
-            
-            // Usar método da CasaPrisao
-            Casa casaPrisao = controller.getTabuleiro().getCasaPrisao();
-            if (casaPrisao instanceof CasaPrisao) {
-                boolean conseguiuSair = ((CasaPrisao) casaPrisao).tentarSairComDados(jogador, dados);
-                if (conseguiuSair) {
-                    addNotificacao("Tirou dupla! Saiu da prisão!");
-                    moverJogador(jogador, d1 + d2);
-                    // Passa a vez
-                    controller.passarVez();
-                    addNotificacao("Vez de: " + controller.getJogadorDaVez().getNome());
-                } else if (!jogador.isPreso()) {
-                    // Saiu após 3 tentativas
-                    addNotificacao("3 tentativas! Saiu da prisão e deve mover.");
-                    moverJogador(jogador, d1 + d2);
-                    // Passa a vez
-                    controller.passarVez();
-                    addNotificacao("Vez de: " + controller.getJogadorDaVez().getNome());
-                } else {
-                    addNotificacao("Não tirou dupla. Tentativa " + jogador.getTentativasPrisao() + "/3");
-                    // Não conseguiu sair, passa a vez
-                    controller.passarVez();
-                    addNotificacao("Vez de: " + controller.getJogadorDaVez().getNome());
-                }
-            }
-        }
-    }
     
-    /** Trata jogada normal (fora da prisão) */
-    private void tratarJogadaNormal(Jogador jogador) {
-        if (controller.isModoManual()) {
-            int d1 = (Integer) comboDado1.getSelectedItem();
-            int d2 = (Integer) comboDado2.getSelectedItem();
-            int soma = d1 + d2;
-            addNotificacao(jogador.getNome() + " lançou: " + soma);
-            
-            moverJogador(jogador, soma);
-            
-            // Verifica duplas
-            if (d1 == d2) {
-                int duplas = jogador.getDuplasConsecutivas() + 1;
-                jogador.setDuplasConsecutivas(duplas);
-                if (duplas >= 3) {
-                    jogador.setPreso(true);
-                    jogador.setPosicao(10);
-                    jogador.setDuplasConsecutivas(0);
-                    addNotificacao("3 duplas seguidas! Vai para a prisão!");
-                    controller.passarVez();
-                    addNotificacao("Vez de: " + controller.getJogadorDaVez().getNome());
-                    return;
-                } else {
-                    addNotificacao("Dupla! Joga novamente.");
-                    return; // Não passa a vez
+    /** Implementação do padrão Observer */
+    @Override
+    public void atualiza(String evento) {
+        Jogador jogadorAtual = controller.getJogadorDaVez();
+        
+        switch (evento) {
+            case "novoValorDados":
+                // Dados já foram atualizados no controller
+                addNotificacao(jogadorAtual.getNome() + " lançou: " + controller.getSoma());
+                break;
+                
+            case "novaPosJogador":
+                Casa casa = controller.getTabuleiro().getCasa(jogadorAtual.getPosicao());
+                addNotificacao("Parou em: " + casa.getNome());
+                break;
+                
+            case "novaCarta":
+                Carta carta = controller.getUltimaCarta();
+                if (carta != null) {
+                    exibirCarta(carta);
+                    addNotificacao("Carta: " + carta.getDescricao());
                 }
-            } else {
-                jogador.setDuplasConsecutivas(0);
-                // Jogada normal sem dupla - passa a vez
-                controller.passarVez();
-                addNotificacao("Vez de: " + controller.getJogadorDaVez().getNome());
-            }
-        } else {
-            controller.rolarDados();
-            int d1 = controller.getDado1();
-            int d2 = controller.getDado2();
-            int soma = controller.getSoma();
-            addNotificacao(jogador.getNome() + " lançou: " + soma);
-            
-            moverJogador(jogador, soma);
-            
-            // Verifica duplas
-            if (d1 == d2) {
-                int duplas = jogador.getDuplasConsecutivas() + 1;
-                jogador.setDuplasConsecutivas(duplas);
-                if (duplas >= 3) {
-                    jogador.setPreso(true);
-                    jogador.setPosicao(10);
-                    jogador.setDuplasConsecutivas(0);
-                    addNotificacao("3 duplas seguidas! Vai para a prisão!");
-                    controller.passarVez();
-                    addNotificacao("Vez de: " + controller.getJogadorDaVez().getNome());
-                    return;
-                } else {
-                    addNotificacao("Dupla! Joga novamente.");
-                    return; // Não passa a vez
+                break;
+                
+            case "passouVez":
+                Jogador proximo = controller.getJogadorDaVez();
+                addNotificacao("Vez de: " + proximo.getNome());
+                break;
+                
+            case "oferecerCartaSaidaLivre":
+                int resp = JOptionPane.showConfirmDialog(
+                    frame,
+                    "Você tem uma carta de Saída Livre. Deseja usá-la?",
+                    "Prisão",
+                    JOptionPane.YES_NO_OPTION
+                );
+                if (resp == JOptionPane.YES_OPTION) {
+                    controller.usarCartaSaidaLivre();
                 }
-            } else {
-                jogador.setDuplasConsecutivas(0);
-                // Jogada normal sem dupla - passa a vez
-                controller.passarVez();
-                addNotificacao("Vez de: " + controller.getJogadorDaVez().getNome());
-            }
-        }
-    }
-    
-    /** Move o jogador e processa a casa */
-    private void moverJogador(Jogador jogador, int casas) {
-        int posAtual = jogador.getPosicao();
-        int novaPos = (posAtual + casas) % controller.getTabuleiro().getTamanho();
-        jogador.setPosicao(novaPos);
-        
-        // Verifica se passou pelo início
-        if (novaPos < posAtual) {
-            jogador.creditar(200);
-            addNotificacao(jogador.getNome() + " passou pelo início! +$200");
-        }
-        
-        Casa casa = controller.getTabuleiro().getCasa(novaPos);
-        addNotificacao("Parou em: " + casa.getNome());
-        
-        processarCasa(jogador, casa);
-    }
-
-    private void processarCasa(Jogador jogador, Casa casa) {
-        TipoCasa tipo = casa.getTipo();
-        
-        switch (tipo) {
-            case PROPRIEDADE:
-                processarCasaPropriedade(jogador, (CasaPropriedade) casa);
                 break;
                 
-            case COMPANHIA:
-                processarCasaCompanhia(jogador, (CasaCompanhia) casa);
+            case "usouSaidaLivre":
+                addNotificacao(jogadorAtual.getNome() + " usou carta de Saída Livre!");
                 break;
                 
-            case SORTE_REVES:
-                processarCasaSorteReves(jogador);
+            case "saiuPrisaoDupla":
+                addNotificacao("Tirou dupla! Saiu da prisão!");
                 break;
                 
-            case VA_PARA_PRISAO:
-                jogador.setPreso(true);
-                jogador.setPosicao(10); // Casa 10 = prisão
-                jogador.setDuplasConsecutivas(0);
-                addNotificacao(jogador.getNome() + " foi para a prisão!");
+            case "saiuPrisao3Tentativas":
+                addNotificacao("3 tentativas! Saiu da prisão e deve mover.");
                 break;
                 
-            case IMPOSTO:
-                CasaImposto imposto = (CasaImposto) casa;
-                jogador.debitar(200); // Valor fixo do imposto
+            case "tentativaPrisaoFalhou":
+                addNotificacao("Não tirou dupla. Tentativa " + jogadorAtual.getTentativasPrisao() + "/3");
+                break;
+                
+            case "dupla":
+                addNotificacao("Dupla! Joga novamente.");
+                break;
+                
+            case "prisao":
+                addNotificacao(jogadorAtual.getNome() + " foi para a prisão!");
+                break;
+                
+            case "passouInicio":
+                addNotificacao(jogadorAtual.getNome() + " passou pelo início! +$200");
+                break;
+                
+            case "cairamPropriedade":
+                processarCasaPropriedade(jogadorAtual, (CasaPropriedade) controller.getTabuleiro().getCasa(jogadorAtual.getPosicao()));
+                break;
+                
+            case "cairamCompanhia":
+                processarCasaCompanhia(jogadorAtual, (CasaCompanhia) controller.getTabuleiro().getCasa(jogadorAtual.getPosicao()));
+                break;
+                
+            case "pagouImposto":
                 addNotificacao("Pagou imposto: $200");
                 break;
                 
-            case RECEBIMENTO:
-                jogador.creditar(200); // Lucros e dividendos
+            case "recebeuDividendos":
                 addNotificacao("Recebeu: $200");
                 break;
                 
-            case INICIO:
-                // Já foi tratado ao passar pelo início
+            case "cartaPrisao":
+                addNotificacao(jogadorAtual.getNome() + " foi para a prisão!");
                 break;
                 
+            case "cartaInicio":
+                addNotificacao(jogadorAtual.getNome() + " voltou ao início!");
+                break;
+                
+            case "cartaSaidaLivre":
+                addNotificacao(jogadorAtual.getNome() + " ganhou carta de Saída Livre!");
+                break;
+                
+            case "cartaMonetaria":
+                // Já foi processada, apenas notifica
+                break;
+                
+            case "fimDoJogo":
+                encerrarJogo();
+                break;
+                
+            case "estadoAtualizado":
             default:
                 break;
         }
+        
+        repaint();
+    }
+    
+    /** Exibe a carta de Sorte/Revés */
+    private void exibirCarta(Carta carta) {
+        Image imgCarta = Images.get(carta.getIdImagem());
+        ImageIcon icon = null;
+        if (imgCarta != null) {
+            icon = new ImageIcon(imgCarta.getScaledInstance(200, 250, Image.SCALE_SMOOTH));
+        }
+        
+        if (icon != null) {
+            JOptionPane.showMessageDialog(
+                frame,
+                carta.getDescricao(),
+                "Sorte ou Revés",
+                JOptionPane.INFORMATION_MESSAGE,
+                icon
+            );
+        } else {
+            JOptionPane.showMessageDialog(
+                frame,
+                carta.getDescricao(),
+                "Sorte ou Revés",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        }
+    }
+    
+    /** Encerra o jogo e exibe vencedor */
+    private void encerrarJogo() {
+        int[] patrimonios = controller.calcularPatrimonios();
+        List<Jogador> jogadores = controller.getJogadores();
+        
+        int maxPatrimonio = -1;
+        int vencedor = 0;
+        
+        StringBuilder msg = new StringBuilder("Patrimônios finais:\n\n");
+        for (int i = 0; i < jogadores.size(); i++) {
+            msg.append(jogadores.get(i).getNome()).append(": $").append(patrimonios[i]).append("\n");
+            if (patrimonios[i] > maxPatrimonio) {
+                maxPatrimonio = patrimonios[i];
+                vencedor = i;
+            }
+        }
+        
+        msg.append("\nVencedor: ").append(jogadores.get(vencedor).getNome()).append("!");
+        
+        JOptionPane.showMessageDialog(
+            frame,
+            msg.toString(),
+            "Fim de Jogo",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+        
+        running = false;
+        frame.dispose();
     }
 
     private void processarCasaPropriedade(Jogador jogador, CasaPropriedade prop) {
@@ -549,58 +541,6 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
                     break;
                 }
             }
-        }
-    }
-
-    private void processarCasaSorteReves(Jogador jogador) {
-        Carta carta = controller.sacarCarta();
-        if (carta != null) {
-            // Carregar imagem da carta
-            Image imgCarta = Images.get(carta.getIdImagem());
-            ImageIcon icon = null;
-            if (imgCarta != null) {
-                icon = new ImageIcon(imgCarta.getScaledInstance(200, 250, Image.SCALE_SMOOTH));
-            }
-            
-            // Mostrar mensagem com imagem
-            if (icon != null) {
-                JOptionPane.showMessageDialog(
-                    frame,
-                    carta.getDescricao(),
-                    "Sorte ou Revés",
-                    JOptionPane.INFORMATION_MESSAGE,
-                    icon
-                );
-            } else {
-                JOptionPane.showMessageDialog(
-                    frame,
-                    carta.getDescricao(),
-                    "Sorte ou Revés",
-                    JOptionPane.INFORMATION_MESSAGE
-                );
-            }
-            
-            addNotificacao("Carta: " + carta.getDescricao());
-            
-            // Aplicar efeito da carta
-            controller.aplicarEfeitoCarta(carta);
-            
-            // Verificar se a carta mandou para prisão ou início
-            if (carta.getDescricao().contains("prisão")) {
-                addNotificacao(jogador.getNome() + " foi para a prisão!");
-            } else if (carta.getDescricao().contains("início")) {
-                addNotificacao(jogador.getNome() + " voltou ao início!");
-            } else if (carta.getValor() != 0) {
-                if (carta.getValor() > 0) {
-                    addNotificacao(jogador.getNome() + " recebeu $" + carta.getValor());
-                } else {
-                    addNotificacao(jogador.getNome() + " pagou $" + Math.abs(carta.getValor()));
-                }
-            } else if (carta.getTipo() == TipoCartas.SAIDA_LIVRE) {
-                addNotificacao(jogador.getNome() + " ganhou carta de Saída Livre!");
-            }
-        } else {
-            addNotificacao("Sorte ou Revés!");
         }
     }
 

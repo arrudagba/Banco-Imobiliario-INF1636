@@ -10,6 +10,7 @@ public class ModelFacade {
     private List<Jogador> jogadores;
     private int jogadorDaVez;
     private Random rng;
+    private Carta ultimaCartaSacada;
 
     private ModelFacade() {
         this.banco = new Banco();
@@ -110,7 +111,13 @@ public class ModelFacade {
     /** Compra uma carta de sorte ou revés */
     public Carta sacarCarta() {
         if (baralho == null) return null;
-        return baralho.comprarCarta();
+        ultimaCartaSacada = baralho.comprarCarta();
+        return ultimaCartaSacada;
+    }
+    
+    /** Retorna a última carta sacada */
+    public Carta getUltimaCartaSacada() {
+        return ultimaCartaSacada;
     }
     
     /** Aplica efeito de carta de Sorte/Revés */

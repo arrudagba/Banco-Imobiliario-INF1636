@@ -88,54 +88,212 @@ public class GameController implements ObservadoApi {
     }
 
     /* ---------- Jogada ---------- */
-    public void processarJogadaComValores(int d1, int d2, int somaDados) {
-    	
-        dado1 = clampDado(d1);
-        dado2 = clampDado(d2);
-        soma = dado1 + dado2;
-
-        // NÃO chama model.moverJogador aqui, pois a View já moveu
-        // Apenas processa a casa onde o jogador parou
-        Jogador jogador = model.getJogadorDaVez();
-        Casa casa = model.getTabuleiro().getCasa(jogador.getPosicao());
-
-        if (casa.getTipo() == TipoCasa.SORTE_REVES) {
-            Carta carta = model.sacarCarta();
-            if (carta != null) {
-                model.aplicarEfeitoCarta(carta);
-                notifica("novaCarta");
+    
+    /** Processa a jogada do jogador da vez */
+    public void processarJogada() {
+        Jogador jogadorAtual = model.getJogadorDaVez();
+        
+        // Verificar se está na prisão
+        if (jogadorAtual.isPreso()) {
+            tratarJogadorNaPrisao(jogadorAtual);
+        } else {
+            tratarJogadaNormal(jogadorAtual);
+        }
+        
+        notifica("estadoAtualizado");
+    }
+    
+    /** Trata jogador que está na prisão */
+    private void tratarJogadorNaPrisao(Jogador jogador) {
+        // Verificar se tem carta de saída livre
+        if (jogador.isCartaSaidaLivre()) {
+            // Notifica View para perguntar ao jogador
+            notifica("oferecerCartaSaidaLivre");
+            return; // View chamará usarCartaSaidaLivre() se jogador aceitar
+        }
+        
+        // Lançar dados para tentar sair
+        int[] dados;
+        if (modoManual) {
+            // View fornecerá os valores via setDadosManuais()
+            dados = new int[]{dado1, dado2, dado1 + dado2};
+        } else {
+            dados = model.lancarDados();
+            dado1 = dados[0];
+            dado2 = dados[1];
+            soma = dados[2];
+            notifica("novoValorDados");
+        }
+        
+        // Usar método da CasaPrisao
+        Casa casaPrisao = model.getTabuleiro().getCasaPrisao();
+        if (casaPrisao instanceof CasaPrisao) {
+            boolean conseguiuSair = ((CasaPrisao) casaPrisao).tentarSairComDados(jogador, dados);
+            if (conseguiuSair) {
+                notifica("saiuPrisaoDupla");
+                moverJogador(jogador, dados[2]);
+                model.passarVez(false);
+                notifica("passouVez");
+            } else if (!jogador.isPreso()) {
+                // Saiu após 3 tentativas
+                notifica("saiuPrisao3Tentativas");
+                moverJogador(jogador, dados[2]);
+                model.passarVez(false);
+                notifica("passouVez");
+            } else {
+                notifica("tentativaPrisaoFalhou");
+                model.passarVez(false);
+                notifica("passouVez");
             }
         }
-
-        notifica("novaPosJogador");
+    }
+    
+    /** Trata jogada normal (fora da prisão) */
+    private void tratarJogadaNormal(Jogador jogador) {
+        // Lançar dados
+        int[] dados;
+        if (modoManual) {
+            dados = new int[]{dado1, dado2, dado1 + dado2};
+        } else {
+            dados = model.lancarDados();
+            dado1 = dados[0];
+            dado2 = dados[1];
+            soma = dados[2];
+            notifica("novoValorDados");
+        }
         
-        // Verifica duplas para repetir jogada
-        boolean ehDupla = (dado1 == dado2);
+        // Mover jogador
+        moverJogador(jogador, dados[2]);
+        
+        // Verifica duplas
+        boolean ehDupla = (dados[0] == dados[1]);
         if (ehDupla) {
             int duplas = jogador.getDuplasConsecutivas() + 1;
             jogador.setDuplasConsecutivas(duplas);
             if (duplas >= 3) {
                 // Três duplas seguidas = prisão
                 jogador.setPreso(true);
-                jogador.setPosicao(10); // Posição da prisão no tabuleiro de 40 casas (casa 10)
+                jogador.setPosicao(10);
                 jogador.setDuplasConsecutivas(0);
                 notifica("prisao");
                 model.passarVez(false);
+                notifica("passouVez");
             } else {
-                // Repete a jogada
-                model.passarVez(true);
+                notifica("dupla");
+                // Não passa a vez - joga novamente
             }
         } else {
             jogador.setDuplasConsecutivas(0);
             model.passarVez(false);
+            notifica("passouVez");
         }
-        
-        notifica("passouVez");
         
         // Verifica fim de jogo
         if (model.fimDoJogo()) {
             notifica("fimDoJogo");
         }
+    }
+    
+    /** Move o jogador e processa a casa */
+    private void moverJogador(Jogador jogador, int casas) {
+        int posAtual = jogador.getPosicao();
+        int novaPos = (posAtual + casas) % model.getTabuleiro().getTamanho();
+        jogador.setPosicao(novaPos);
+        
+        // Verifica se passou pelo início
+        if (novaPos < posAtual) {
+            jogador.creditar(200);
+            notifica("passouInicio");
+        }
+        
+        notifica("novaPosJogador");
+        
+        Casa casa = model.getTabuleiro().getCasa(novaPos);
+        processarCasa(jogador, casa);
+    }
+    
+    /** Processa a casa onde o jogador parou */
+    private void processarCasa(Jogador jogador, Casa casa) {
+        TipoCasa tipo = casa.getTipo();
+        
+        switch (tipo) {
+            case PROPRIEDADE:
+                notifica("cairamPropriedade");
+                break;
+                
+            case COMPANHIA:
+                notifica("cairamCompanhia");
+                break;
+                
+            case SORTE_REVES:
+                processarCasaSorteReves(jogador);
+                break;
+                
+            case VA_PARA_PRISAO:
+                jogador.setPreso(true);
+                jogador.setPosicao(10);
+                jogador.setDuplasConsecutivas(0);
+                notifica("prisao");
+                break;
+                
+            case IMPOSTO:
+                jogador.debitar(200);
+                notifica("pagouImposto");
+                break;
+                
+            case RECEBIMENTO:
+                jogador.creditar(200);
+                notifica("recebeuDividendos");
+                break;
+                
+            case INICIO:
+            case PRISAO:
+            case LIVRE:
+            default:
+                break;
+        }
+    }
+    
+    /** Processa carta de Sorte/Revés */
+    private void processarCasaSorteReves(Jogador jogador) {
+        Carta carta = model.sacarCarta();
+        if (carta != null) {
+            notifica("novaCarta");
+            model.aplicarEfeitoCarta(carta);
+            
+            // Notificações específicas por tipo de carta
+            if (carta.getDescricao().contains("prisão")) {
+                notifica("cartaPrisao");
+            } else if (carta.getDescricao().contains("início")) {
+                notifica("cartaInicio");
+            } else if (carta.getTipo() == TipoCartas.SAIDA_LIVRE) {
+                notifica("cartaSaidaLivre");
+            } else if (carta.getValor() != 0) {
+                notifica("cartaMonetaria");
+            }
+        }
+    }
+    
+    /** Usa carta de saída livre (chamado pela View quando jogador aceita) */
+    public void usarCartaSaidaLivre() {
+        Jogador jogador = model.getJogadorDaVez();
+        jogador.setCartaSaidaLivre(false);
+        jogador.setPreso(false);
+        jogador.setTentativasPrisao(0);
+        notifica("usouSaidaLivre");
+        tratarJogadaNormal(jogador);
+    }
+    
+    /** Define valores dos dados manualmente (modo manual) */
+    public void setDadosManuais(int d1, int d2) {
+        dado1 = clampDado(d1);
+        dado2 = clampDado(d2);
+        soma = dado1 + dado2;
+    }
+    
+    /** Retorna a última carta sacada */
+    public Carta getUltimaCarta() {
+        return model.getUltimaCartaSacada();
     }
 
     /* ---------- Auxiliares ---------- */
@@ -285,7 +443,24 @@ public class GameController implements ObservadoApi {
             "novaPosJogador",
             "novaCarta",
             "passouVez",
-            "estadoAtualizado"
+            "estadoAtualizado",
+            "oferecerCartaSaidaLivre",
+            "usouSaidaLivre",
+            "saiuPrisaoDupla",
+            "saiuPrisao3Tentativas",
+            "tentativaPrisaoFalhou",
+            "dupla",
+            "prisao",
+            "passouInicio",
+            "cairamPropriedade",
+            "cairamCompanhia",
+            "pagouImposto",
+            "recebeuDividendos",
+            "cartaPrisao",
+            "cartaInicio",
+            "cartaSaidaLivre",
+            "cartaMonetaria",
+            "fimDoJogo"
         };
         for (String e : eventos) {
             observadores.put(e, new ArrayList<>());
