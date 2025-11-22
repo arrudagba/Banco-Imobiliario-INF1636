@@ -69,9 +69,21 @@ public class Jogador {
     }
     
     public boolean construirCasa(CasaPropriedade propriedade) {
-        if (propriedade.getProprietario() == this && saldo >= propriedade.getPreco()) {
+        int custoCasa = propriedade.getCustoCasa(); // 50% do valor do território
+        if (propriedade.getProprietario() == this && saldo >= custoCasa) {
             if (propriedade.construirCasa()) {
-                debitar(propriedade.getPreco());
+                debitar(custoCasa);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public boolean construirHotel(CasaPropriedade propriedade) {
+        int custoHotel = propriedade.getCustoHotel(); // 100% do valor do território
+        if (propriedade.getProprietario() == this && saldo >= custoHotel) {
+            if (propriedade.construirHotel()) {
+                debitar(custoHotel);
                 return true;
             }
         }
@@ -79,7 +91,7 @@ public class Jogador {
     }
     
     public boolean pagarAluguel(CasaPropriedade propriedade) {
-        int aluguel = propriedade.getPreco(); // aluguel por enquanto com o valor da casa(como está na planilha)
+        int aluguel = propriedade.calcularAluguel();
         if (debitar(aluguel)) {
             propriedade.getProprietario().creditar(aluguel);
             return true;

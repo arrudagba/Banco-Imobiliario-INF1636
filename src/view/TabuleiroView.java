@@ -47,6 +47,7 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener, Obse
 
     private String[] descricaoDaVez = {""};
     private Image imagemPropriedadeSelecionada = null;
+    private Color corDadosAtual;
 
 
     public TabuleiroView(GameController controller) {
@@ -87,6 +88,9 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener, Obse
         for (int i = 0; i < notificacoes.length; i++)
             notificacoes[i] = "-";
 
+        // Inicializar cor dos dados com a cor do primeiro jogador
+        corDadosAtual = coresJogadores[0];
+        
         criarComponentesSwing();
         preencherComboPropriedades();
         registrarObservadores();
@@ -145,6 +149,20 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener, Obse
 
     	    comboDado1.setBounds(DIVIDER + 320, 240, 60, 30);
     	    comboDado2.setBounds(DIVIDER + 410, 240, 60, 30);
+    	    
+    	    // Listener para atualizar visual do dado 1 quando selecionado
+    	    comboDado1.addActionListener(e -> {
+    	        int valorSelecionado = (Integer) comboDado1.getSelectedItem();
+    	        controller.setDadosManuais(valorSelecionado, controller.getDado2());
+    	        repaint();
+    	    });
+    	    
+    	    // Listener para atualizar visual do dado 2 quando selecionado
+    	    comboDado2.addActionListener(e -> {
+    	        int valorSelecionado = (Integer) comboDado2.getSelectedItem();
+    	        controller.setDadosManuais(controller.getDado1(), valorSelecionado);
+    	        repaint();
+    	    });
 
     	    this.add(comboDado1);
     	    this.add(comboDado2);
@@ -249,6 +267,9 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener, Obse
             case "passouVez":
                 Jogador proximo = controller.getJogadorDaVez();
                 addNotificacao("Vez de: " + proximo.getNome());
+                // Atualizar cor dos dados para o novo jogador
+                int novoJogadorIdx = controller.getJogadores().indexOf(proximo);
+                corDadosAtual = coresJogadores[novoJogadorIdx % coresJogadores.length];
                 break;
                 
             case "oferecerCartaSaidaLivre":
@@ -328,6 +349,9 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener, Obse
                 break;
                 
             case "estadoAtualizado":
+                preencherComboPropriedades();
+                break;
+                
             default:
                 break;
         }
@@ -628,8 +652,6 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener, Obse
         g.fillRect(DIVIDER + 15, 0, 4, HEIGHT);
 
         List<Jogador> jogadores = controller.getJogadores();
-        int jogadorDaVez = controller.getJogadores().indexOf(controller.getJogadorDaVez());
-        Color corAtual = coresJogadores[jogadorDaVez % coresJogadores.length];
 
         // Saldos
         int saldosX = DIVIDER + 40;
@@ -645,7 +667,7 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener, Obse
         g.setFont(new Font("SansSerif", Font.PLAIN, 16));
         int ySaldo = saldosY + 35;
         for (Jogador j : jogadores) {
-            g.setColor(corAtual.equals(corJogador(j)) ? corAtual : Color.BLACK);
+            g.setColor(corDadosAtual.equals(corJogador(j)) ? corDadosAtual : Color.BLACK);
             String status = j.isPreso() ? " [PRESO]" : "";
             g.drawString(j.getNome() + ": $" + j.getSaldo() + status, saldosX, ySaldo);
             ySaldo += 30;
@@ -658,7 +680,7 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener, Obse
         g.setFont(new Font("SansSerif", Font.BOLD, 16));
         g.drawString("Vez de: " + controller.getJogadorDaVez().getNome(), dadosX + 10, dadosY - 5);
 
-        g.setColor(corAtual);
+        g.setColor(corDadosAtual);
         g.fillRect(dadosX, dadosY, 200, 120);
         g.setColor(Color.BLACK);
         g.drawRect(dadosX, dadosY, 200, 120);
@@ -682,12 +704,7 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener, Obse
             g.drawImage(pinos[i], x, y, 15, 22, this);
         }
 
-        // Imagem da propriedade selecionada (abaixo da combo, alinhada à esquerda)
-        if (imagemPropriedadeSelecionada != null) {
-            g.drawImage(imagemPropriedadeSelecionada, DIVIDER + 50, 360, 132, 150, this);
-        }
-
-        // Descrição da propriedade (ao lado direito da imagem)
+        // Descrição da propriedade (acima da imagem)
         g.setFont(new Font("SansSerif", Font.PLAIN, 12));
         for (int i = 0; i < descricaoDaVez.length; i++) {
             if (i == 1 && !descricaoDaVez[i].equals("Titular: sem titular")) {
@@ -698,8 +715,14 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener, Obse
                     }
                 }
             }
-            g.drawString(descricaoDaVez[i], DIVIDER + 195, 370 + i * 20);
+            g.drawString(descricaoDaVez[i], DIVIDER + 50, 370 + i * 20);
             g.setColor(Color.BLACK);
+        }
+        
+        // Imagem da propriedade selecionada (abaixo da descrição, alinhada à esquerda)
+        if (imagemPropriedadeSelecionada != null) {
+            int imgY = 370 + (descricaoDaVez.length * 20) + 10;
+            g.drawImage(imagemPropriedadeSelecionada, DIVIDER + 50, imgY, 132, 150, this);
         }
     }
 

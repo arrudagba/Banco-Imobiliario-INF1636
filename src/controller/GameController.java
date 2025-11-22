@@ -200,8 +200,9 @@ public class GameController implements ObservadoApi {
         int novaPos = (posAtual + casas) % model.getTabuleiro().getTamanho();
         jogador.setPosicao(novaPos);
         
-        // Verifica se passou pelo início
-        if (novaPos < posAtual) {
+        // Verifica se passou pelo início (completou uma volta)
+        // Só credita se realmente passou (novaPos < posAtual) E não está saindo da casa 0
+        if (novaPos < posAtual && posAtual != 0) {
             jogador.creditar(200);
             notifica("passouInicio");
         }

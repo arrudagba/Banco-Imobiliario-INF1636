@@ -46,6 +46,36 @@ public class CasaPropriedade extends Casa implements Compravel {
         return proprietario != null;
     }
     
+    /**
+     * Calcula o valor do aluguel da propriedade.
+     * Fórmula: Va = Vb + Vc*n + Vh
+     * Vb: valor base (10% do valor do território)
+     * Vc: valor do aluguel de uma casa (15% do valor do território)
+     * n: número de casas
+     * Vh: valor do aluguel do hotel (30% do valor do território)
+     */
+    public int calcularAluguel() {
+        double vb = preco * 0.1;  // Valor base: 10% do território
+        double vc = preco * 0.15; // Valor por casa: 15% do território
+        double vh = temHotel ? (preco * 0.3) : 0; // Valor do hotel: 30% do território
+        
+        return (int) (vb + (vc * numCasas) + vh);
+    }
+    
+    /**
+     * Retorna o custo de construir uma casa (50% do valor do território)
+     */
+    public int getCustoCasa() {
+        return (int) (preco * 0.5);
+    }
+    
+    /**
+     * Retorna o custo de construir um hotel (100% do valor do território)
+     */
+    public int getCustoHotel() {
+        return preco;
+    }
+    
     @Override
     public void executarAcao(Jogador jogador) {
         if (!temProprietario()) {
