@@ -230,24 +230,25 @@ public class GameController implements ObservadoApi {
                 break;
                 
             case VA_PARA_PRISAO:
-                jogador.setPreso(true);
-                jogador.setPosicao(10);
-                jogador.setDuplasConsecutivas(0);
+                casa.executarAcao(jogador);
                 notifica("prisao");
                 break;
                 
             case IMPOSTO:
-                jogador.debitar(200);
+                casa.executarAcao(jogador);
                 notifica("pagouImposto");
                 break;
                 
             case RECEBIMENTO:
-                jogador.creditar(200);
+                casa.executarAcao(jogador);
                 notifica("recebeuDividendos");
                 break;
                 
-            case INICIO:
             case PRISAO:
+                casa.executarAcao(jogador);
+                break;
+                
+            case INICIO:
             case LIVRE:
             default:
                 break;
