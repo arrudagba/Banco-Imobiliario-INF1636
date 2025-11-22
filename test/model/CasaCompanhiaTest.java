@@ -33,7 +33,7 @@ public class CasaCompanhiaTest {
         CasaCompanhia companhia = new CasaCompanhia(5, "Companhia Ferroviária", 200);
         int[] dados = {3, 4, 7}; // soma = 7
         
-        int aluguel = companhia.calcularAluguel(dados);
+        int aluguel = companhia.calcularAluguel(dados[2]);
         
         assertEquals(70, aluguel); // 7 * 10
     }
@@ -43,7 +43,7 @@ public class CasaCompanhiaTest {
         CasaCompanhia companhia = new CasaCompanhia(5, "Companhia Ferroviária", 200);
         int[] dados = {5, 5, 10}; // soma = 10
         
-        int aluguel = companhia.calcularAluguel(dados);
+        int aluguel = companhia.calcularAluguel(dados[2]);
         
         assertEquals(100, aluguel); // 10 * 10
     }

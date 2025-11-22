@@ -220,51 +220,50 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
         if (controller.isModoManual()) {
             int d1 = (Integer) comboDado1.getSelectedItem();
             int d2 = (Integer) comboDado2.getSelectedItem();
+            int[] dados = {d1, d2, d1 + d2};
             addNotificacao(jogador.getNome() + " (PRESO) lançou: " + d1 + " e " + d2);
             
-            if (d1 == d2) {
-                jogador.setPreso(false);
-                jogador.setTentativasPrisao(0);
-                addNotificacao("Tirou dupla! Saiu da prisão!");
-                moverJogador(jogador, d1 + d2);
-            } else {
-                jogador.incrementarTentativasPrisao();
-                addNotificacao("Não tirou dupla. Tentativa " + jogador.getTentativasPrisao() + "/3");
-                
-                if (jogador.getTentativasPrisao() >= 3) {
-                    jogador.setPreso(false);
-                    jogador.setTentativasPrisao(0);
+            // Usar método da CasaPrisao
+            Casa casaPrisao = controller.getTabuleiro().getCasaPrisao();
+            if (casaPrisao instanceof CasaPrisao) {
+                boolean conseguiuSair = ((CasaPrisao) casaPrisao).tentarSairComDados(jogador, dados);
+                if (conseguiuSair) {
+                    addNotificacao("Tirou dupla! Saiu da prisão!");
+                    moverJogador(jogador, d1 + d2);
+                } else if (!jogador.isPreso()) {
+                    // Saiu após 3 tentativas
                     addNotificacao("3 tentativas! Saiu da prisão e deve mover.");
                     moverJogador(jogador, d1 + d2);
+                } else {
+                    addNotificacao("Não tirou dupla. Tentativa " + jogador.getTentativasPrisao() + "/3");
                 }
             }
         } else {
             controller.rolarDados();
             int d1 = controller.getDado1();
             int d2 = controller.getDado2();
+            int[] dados = {d1, d2, d1 + d2};
             addNotificacao(jogador.getNome() + " (PRESO) lançou: " + d1 + " e " + d2);
             
-            if (d1 == d2) {
-                jogador.setPreso(false);
-                jogador.setTentativasPrisao(0);
-                addNotificacao("Tirou dupla! Saiu da prisão!");
-                moverJogador(jogador, d1 + d2);
-                // Passa a vez
-                controller.passarVez();
-                addNotificacao("Vez de: " + controller.getJogadorDaVez().getNome());
-            } else {
-                jogador.incrementarTentativasPrisao();
-                addNotificacao("Não tirou dupla. Tentativa " + jogador.getTentativasPrisao() + "/3");
-                
-                if (jogador.getTentativasPrisao() >= 3) {
-                    jogador.setPreso(false);
-                    jogador.setTentativasPrisao(0);
+            // Usar método da CasaPrisao
+            Casa casaPrisao = controller.getTabuleiro().getCasaPrisao();
+            if (casaPrisao instanceof CasaPrisao) {
+                boolean conseguiuSair = ((CasaPrisao) casaPrisao).tentarSairComDados(jogador, dados);
+                if (conseguiuSair) {
+                    addNotificacao("Tirou dupla! Saiu da prisão!");
+                    moverJogador(jogador, d1 + d2);
+                    // Passa a vez
+                    controller.passarVez();
+                    addNotificacao("Vez de: " + controller.getJogadorDaVez().getNome());
+                } else if (!jogador.isPreso()) {
+                    // Saiu após 3 tentativas
                     addNotificacao("3 tentativas! Saiu da prisão e deve mover.");
                     moverJogador(jogador, d1 + d2);
                     // Passa a vez
                     controller.passarVez();
                     addNotificacao("Vez de: " + controller.getJogadorDaVez().getNome());
                 } else {
+                    addNotificacao("Não tirou dupla. Tentativa " + jogador.getTentativasPrisao() + "/3");
                     // Não conseguiu sair, passa a vez
                     controller.passarVez();
                     addNotificacao("Vez de: " + controller.getJogadorDaVez().getNome());
@@ -636,14 +635,24 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
             }
         }
         
-        // Tenta carregar como território - remove caracteres problemáticos
-        String nomeSimplificado = nomePropriedade
-            .replace(".", "")
-            .replace(" ", "_")
-            .replace("Sra", "Sra")
-            .replace("_De_", "_de_");
+        // Mapeamento direto de nomes do tabuleiro para nomes dos arquivos PNG
+        // Baseado nos arquivos reais em src/Imagens/territorios/
+        String mapeamento = nomePropriedade;
         
-        Image img = Images.get("territorio_" + nomeSimplificado);
+        // Mapeamentos específicos
+        if (nomePropriedade.equals("Av. Nossa Sra. De Copacabana")) {
+            mapeamento = "Av. Nossa S. de Copacabana";
+        } else if (nomePropriedade.equals("Av. Pacaembú")) {
+            mapeamento = "Av. Pacaemb£";
+        } else if (nomePropriedade.equals("Av. Atlântica")) {
+            mapeamento = "Av. AtlÉntica";
+        } else if (nomePropriedade.equals("Av. Rebouças")) {
+            mapeamento = "Av. Rebouáas";
+        } else if (nomePropriedade.equals("Av. Brigadeiro Faria Lima")) {
+            mapeamento = "Av. Brigadero Faria Lima";
+        }
+        
+        Image img = Images.get("territorio_" + mapeamento);
         if (img != null) return img;
         
         // Tenta nome original
@@ -733,12 +742,12 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
             g.drawImage(pinos[i], x, y, 15, 22, this);
         }
 
-        // Imagem da propriedade selecionada (ajustada para ficar abaixo da combo)
+        // Imagem da propriedade selecionada (abaixo da combo, alinhada à esquerda)
         if (imagemPropriedadeSelecionada != null) {
-            g.drawImage(imagemPropriedadeSelecionada, DIVIDER + 280, 360, 132, 150, this);
+            g.drawImage(imagemPropriedadeSelecionada, DIVIDER + 50, 360, 132, 150, this);
         }
 
-        // Descrição da propriedade (ajustada para ficar abaixo da combo)
+        // Descrição da propriedade (ao lado direito da imagem)
         g.setFont(new Font("SansSerif", Font.PLAIN, 12));
         for (int i = 0; i < descricaoDaVez.length; i++) {
             if (i == 1 && !descricaoDaVez[i].equals("Titular: sem titular")) {
@@ -749,7 +758,7 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener {
                     }
                 }
             }
-            g.drawString(descricaoDaVez[i], DIVIDER + 60, 370 + i * 20);
+            g.drawString(descricaoDaVez[i], DIVIDER + 195, 370 + i * 20);
             g.setColor(Color.BLACK);
         }
     }

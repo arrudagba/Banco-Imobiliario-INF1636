@@ -103,6 +103,13 @@ public class Tabuleiro {
             descricao[2] = "Casas: " + t.getNumCasas();
             descricao[3] = "Hotéis: " + t.getNumHotel();
             return descricao;
+        } else if (c instanceof CasaCompanhia) {
+            CasaCompanhia comp = (CasaCompanhia) c;
+            String[] descricao = new String[3];
+            descricao[0] = "Preço: $" + comp.getPreco();
+            descricao[1] = "Titular: " + (comp.getProprietario() == null ? "sem titular" : comp.getProprietario().getNome());
+            descricao[2] = "Taxa: Soma dos dados x $10";
+            return descricao;
 
         } 
         

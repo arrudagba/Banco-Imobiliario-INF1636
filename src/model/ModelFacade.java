@@ -36,7 +36,8 @@ public class ModelFacade {
             jogadores.add(new Jogador(nome));
         }
         if (jogadorDaVezInicial < 0) {
-            this.jogadorDaVez = rng.nextInt(jogadores.size());
+            // SEMPRE começa no jogador 0 para nova partida
+            this.jogadorDaVez = 0;
         } else {
             this.jogadorDaVez = jogadorDaVezInicial;
         }
