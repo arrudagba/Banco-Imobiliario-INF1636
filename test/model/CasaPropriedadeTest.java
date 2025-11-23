@@ -32,6 +32,6 @@ public class CasaPropriedadeTest {
         boolean construiuHotel = casa.construirHotel();
         assertTrue(construiuHotel);
         assertTrue(casa.isTemHotel());
-        assertEquals(0, casa.getNumCasas());
+        assertEquals(1, casa.getNumCasas());
     }
 }

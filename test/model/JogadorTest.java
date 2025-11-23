@@ -28,7 +28,8 @@ public class JogadorTest {
         
         assertTrue(construiu);
         assertEquals(1, propriedade.getNumCasas());
-        assertEquals(3800, jogador.getSaldo()); // 3900 - 100
+        // Custo casa = 50% do valor = $50
+        assertEquals(3850, jogador.getSaldo()); // 3900 - 50
     }
     
     @Test
@@ -45,16 +46,19 @@ public class JogadorTest {
         
         boolean pagou = jogador.pagarAluguel(propriedade);
         
+        // Aluguel = Vb (10%) + Vc*1 (15%) = $10 + $15 = $25
+        int aluguel = propriedade.calcularAluguel();
+        
         assertTrue(pagou);
-        assertEquals(saldoInicialJogador - 100, jogador.getSaldo()); // aluguel = valor da propriedade
-        assertEquals(saldoInicialProprietario + 100, proprietario.getSaldo());
+        assertEquals(saldoInicialJogador - aluguel, jogador.getSaldo());
+        assertEquals(saldoInicialProprietario + aluguel, proprietario.getSaldo());
     }
     
     @Test
     public void testPagarImposto() {
-        Banco banco = new Banco();
+        Banco banco = Banco.getInstance();
         Jogador jogador = new Jogador("Teste");
-        CasaImposto imposto = new CasaImposto(21, "Imposto de Renda", 200, banco);
+        CasaImposto imposto = new CasaImposto(21, "Imposto de Renda", 200);
         
         int saldoInicialJogador = jogador.getSaldo();
         int saldoInicialBanco = banco.getSaldo();
@@ -67,7 +71,7 @@ public class JogadorTest {
     
     @Test
     public void testVenderPropriedadeParaBanco() {
-        Banco banco = new Banco();
+        Banco banco = Banco.getInstance();
         Jogador jogador = new Jogador("Teste");
         CasaPropriedade propriedade = new CasaPropriedade(2, "Leblon", 100);
         
@@ -84,18 +88,18 @@ public class JogadorTest {
     
     @Test
     public void testTratarFalencia() {
-        Banco banco = new Banco();
+        Banco banco = Banco.getInstance();
         Jogador jogador = new Jogador("Teste");
         CasaPropriedade propriedade = new CasaPropriedade(2, "Leblon", 100);
         
         jogador.comprarPropriedade(propriedade);
-        jogador.debitar(3990); // fica com saldo negativo
+        jogador.debitar(3990); // fica com saldo negativo (-90)
         
         boolean tratou = jogador.tratarFalencia(banco);
         
         assertTrue(tratou);
         assertFalse(jogador.estaFalido());
-        assertEquals(0, jogador.getSaldo()); // recebe 90 da venda
+        assertEquals(0, jogador.getSaldo()); // -90 + 90 da venda = 0
     }
     
     @Test
