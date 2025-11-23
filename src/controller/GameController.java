@@ -10,19 +10,10 @@ import java.util.*;
 
 
 /**
-
  * Controlador principal do jogo.
  *
  * Responsável por coordenar a comunicação entre a View e o ModelFacade.
  * 
- * Requisitos cobertos na 2ª iteração:
- *  - Singleton
- *  - Cria jogadores e sorteia ordem
- *  - Lança dados e envia resultado ao ModelFacade
- *  - Solicita ao ModelFacade o deslocamento e estado do jogo
- *  - Gera e registra cartas Sorte/Revés
- *  - Notifica observadores
- 
  */
 
 public class GameController implements ObservadoApi {
@@ -105,13 +96,6 @@ public class GameController implements ObservadoApi {
     
     /** Trata jogador que está na prisão */
     private void tratarJogadorNaPrisao(Jogador jogador) {
-        // Verificar se tem carta de saída livre
-        if (jogador.isCartaSaidaLivre()) {
-            // Notifica View para perguntar ao jogador
-            notifica("oferecerCartaSaidaLivre");
-            return; // View chamará usarCartaSaidaLivre() se jogador aceitar
-        }
-        
         // Lançar dados para tentar sair
         int[] dados;
         if (modoManual) {
@@ -141,7 +125,14 @@ public class GameController implements ObservadoApi {
                 model.passarVez(false);
                 notifica("passouVez");
             } else {
+                // Falhou na tentativa - verificar se tem carta para oferecer
                 notifica("tentativaPrisaoFalhou");
+                if (jogador.isCartaSaidaLivre()) {
+                    // Notifica View para perguntar se quer usar a carta
+                    notifica("oferecerCartaSaidaLivre");
+                    // View chamará usarCartaSaidaLivre() se jogador aceitar
+                    // Se não aceitar, continua preso
+                }
                 model.passarVez(false);
                 notifica("passouVez");
             }
