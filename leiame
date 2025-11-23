@@ -1,0 +1,55 @@
+1. Participantes
+
+Gabriel de Barros Arruda (2311723)
+Gustavo Valente de Barros Oliveira (2410339)
+Lucca Gomes Sznaider (2220504)
+
+2. Apresentação em vídeo
+
+O vídeo contendo a apresentação da quarta iteração está no seguinte link:
+
+
+3. Início da Partida
+
+Para iniciar ou carregar uma partida de Banco Imobiliário, execute o método main presente na classe Main.java, localizada no pacote default do projeto.
+
+4. Salvamento / Carregamento de Partidas
+
+Para salvar a partida em andamento, clique no botão Salvar Partida na janela do tabuleiro e escolha o nome e local onde deseja salvar o arquivo .txt com os dados da partida.
+
+Para carregar uma partida salva anteriormente, clique no botão Carregar Partida na tela inicial e selecione o arquivo de salvamento correspondente.
+
+Caso deseje visualizar ou editar manualmente o arquivo de salvamento, a estrutura do arquivo é descrita a seguir:
+
+[CONFIGURACOES]
+MODO_MANUAL=*0 para modo normal ou 1 para modo manual/deus*
+NUM_JOGADORES=*número total de jogadores*
+JOGADOR_DA_VEZ=*índice do jogador atual (0, 1, 2...)*
+
+[JOGADORES]
+# Formato: NOME|SALDO|POSICAO|PRESO|CARTA_SAIDA_LIVRE|TENTATIVAS_PRISAO|DUPLAS_CONSECUTIVAS
+JOGADOR_0=*nome*|*saldo*|*posição*|*0 ou 1*|*0 ou 1*|*tentativas*|*duplas*
+JOGADOR_1=*nome*|*saldo*|*posição*|*0 ou 1*|*0 ou 1*|*tentativas*|*duplas*
+...
+
+[PROPRIEDADES]
+# Formato: POSICAO|NOME|PRECO|PROPRIETARIO|NUM_CASAS|TEM_HOTEL
+PROP_*posição*=*posição*|*nome*|*preço*|*NENHUM ou nome do proprietário*|*num_casas*|*0 ou 1*
+...
+
+[COMPANHIAS]
+# Formato: POSICAO|NOME|PRECO|PROPRIETARIO
+COMP_*posição*=*posição*|*nome*|*preço*|*NENHUM ou nome do proprietário*
+...
+
+[CARTAS_ESPECIAIS]
+# Jogadores com carta de saída livre da prisão
+CARTA_SAIDA_LIVRE=*nome do jogador*
+CARTA_SAIDA_LIVRE=*nome de outro jogador (se houver)*
+...
+
+[ESTATISTICAS]
+# Formato: NOME|Propriedades: X|Posição: Y|Status: Z
+STAT_*índice*=*nome*|Propriedades: *quantidade*|Posição: *posição*|Status: *LIVRE ou PRESO*
+...
+
