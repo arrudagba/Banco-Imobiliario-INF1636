@@ -312,6 +312,9 @@ public class HistoricoJogo {
                 }
             }
             
+            // Notificar View para atualizar interface com o jogador correto
+            controller.notifica("estadoAtualizado");
+            
             return true;
             
         } catch (Exception e) {

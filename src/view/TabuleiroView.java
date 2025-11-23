@@ -355,6 +355,10 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener, Obse
                 break;
                 
             case "estadoAtualizado":
+                // Atualizar cor dos dados para o jogador da vez atual
+                Jogador atual = controller.getJogadorDaVez();
+                int jogadorIdx = controller.getJogadores().indexOf(atual);
+                corDadosAtual = coresJogadores[jogadorIdx % coresJogadores.length];
                 preencherComboPropriedades();
                 break;
                 

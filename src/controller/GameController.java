@@ -10,9 +10,19 @@ import java.util.*;
 
 
 /**
+
  * Controlador principal do jogo.
  *
  * Responsável por coordenar a comunicação entre a View e o ModelFacade.
+ * 
+ * Requisitos cobertos na 2ª iteração:
+ *  - Singleton
+ *  - Cria jogadores e sorteia ordem
+ *  - Lança dados e envia resultado ao ModelFacade
+ *  - Solicita ao ModelFacade o deslocamento e estado do jogo
+ *  - Gera e registra cartas Sorte/Revés
+ *  - Notifica observadores
+ 
  */
 
 public class GameController implements ObservadoApi {
@@ -60,8 +70,8 @@ public class GameController implements ObservadoApi {
     }
     
     public void iniciarPartidaCarregada() {
-        notifica("estadoAtualizado");
         new TabuleiroView(this).setVisible(true);
+        notifica("estadoAtualizado");
     }
 
     /* ---------- Dados ---------- */
