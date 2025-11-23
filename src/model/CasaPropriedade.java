@@ -59,7 +59,7 @@ public class CasaPropriedade extends Casa implements Compravel {
         double vc = preco * 0.15; // Valor por casa: 15% do território
         double vh = temHotel ? (preco * 0.3) : 0; // Valor do hotel: 30% do território
         
-        return (int) (vb + (vc * numCasas) + vh);
+        return (int) Math.ceil(vb + (vc * numCasas) + vh);
     }
     
     /**

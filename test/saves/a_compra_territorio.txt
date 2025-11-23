@@ -1,0 +1,54 @@
+# TESTE A: Compra de território por um jogador
+# Player1 possui a propriedade "Leblon" (posição 1, preço $100)
+
+[CONFIGURACOES]
+MODO_MANUAL=0
+NUM_JOGADORES=3
+JOGADOR_DA_VEZ=0
+
+[JOGADORES]
+JOGADOR_0=Player1|3900|1|0|0|0|0
+JOGADOR_1=Player2|4000|5|0|0|0|0
+JOGADOR_2=Player3|4000|10|0|0|0|0
+
+[PROPRIEDADES]
+# Formato: POSICAO|NOME|PRECO|PROPRIETARIO|NUM_CASAS|TEM_HOTEL
+PROP_1=1|Leblon|100|Player1|0|0
+PROP_3=3|Av. Presidente Vargas|60|NENHUM|0|0
+PROP_4=4|Av. Nossa Sra. De Copacabana|60|NENHUM|0|0
+PROP_6=6|Av. Brigadeiro Faria Lima|240|NENHUM|0|0
+PROP_8=8|Av. Rebouças|220|NENHUM|0|0
+PROP_9=9|Av. 9 de Julho|220|NENHUM|0|0
+PROP_11=11|Av. Europa|200|NENHUM|0|0
+PROP_13=13|Rua Augusta|180|NENHUM|0|0
+PROP_14=14|Av. Pacaembú|180|NENHUM|0|0
+PROP_17=17|Interlagos|350|NENHUM|0|0
+PROP_19=19|Morumbi|400|NENHUM|0|0
+PROP_21=21|Flamengo|120|NENHUM|0|0
+PROP_23=23|Botafogo|100|NENHUM|0|0
+PROP_26=26|Av. Brasil|160|NENHUM|0|0
+PROP_28=28|Av. Paulista|140|NENHUM|0|0
+PROP_29=29|Jardim Europa|140|NENHUM|0|0
+PROP_31=31|Copacabana|260|NENHUM|0|0
+PROP_33=33|Av. Vieira Souto|320|NENHUM|0|0
+PROP_34=34|Av. Atlântica|300|NENHUM|0|0
+PROP_36=36|Ipanema|300|NENHUM|0|0
+PROP_38=38|Jardim Paulista|280|NENHUM|0|0
+PROP_39=39|Brooklin|260|NENHUM|0|0
+
+[COMPANHIAS]
+# Formato: POSICAO|NOME|PRECO|PROPRIETARIO
+COMP_5=5|Companhia Ferroviária|200|NENHUM
+COMP_7=7|Companhia de Viação|200|NENHUM
+COMP_15=15|Companhia de Táxi|150|NENHUM
+COMP_25=25|Companhia de Navegação|150|NENHUM
+COMP_32=32|Companhia de Aviação|200|NENHUM
+COMP_35=35|Companhia de Táxi Aéreo|200|NENHUM
+
+[CARTAS_ESPECIAIS]
+# Jogadores com carta de saída livre da prisão
+
+[ESTATISTICAS]
+STAT_0=Player1|Propriedades: 1|Posição: 1|Status: LIVRE
+STAT_1=Player2|Propriedades: 0|Posição: 5|Status: LIVRE
+STAT_2=Player3|Propriedades: 0|Posição: 10|Status: LIVRE
