@@ -172,6 +172,9 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener, Obse
     	botaoLancar = new JButton("Lançar Dados");
         botaoLancar.setBounds(DIVIDER + 320 , 195, 150, 30);
         botaoLancar.addActionListener(e -> {
+            // Desabilitar botão salvar quando jogador começa a jogar
+            botaoSalvar.setEnabled(false);
+            
             // Define dados se modo manual
             if (controller.isModoManual()) {
                 int d1 = (Integer) comboDado1.getSelectedItem();
@@ -189,6 +192,7 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener, Obse
         // Salvar
         botaoSalvar = new JButton("Salvar Jogo");
         botaoSalvar.setBounds(DIVIDER + 230, HEIGHT - 85, 150, 30);
+        botaoSalvar.setEnabled(false); // Desabilitado no início - só habilita após primeira jogada
         botaoSalvar.addActionListener(e -> {
             var path = controller.salvarJogo();
             if (path != null) addNotificacao("Jogo salvo em: " + path.toString());
@@ -270,6 +274,8 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener, Obse
                 // Atualizar cor dos dados para o novo jogador
                 int novoJogadorIdx = controller.getJogadores().indexOf(proximo);
                 corDadosAtual = coresJogadores[novoJogadorIdx % coresJogadores.length];
+                // Reabilitar botão salvar (próximo jogador pode salvar antes de jogar)
+                botaoSalvar.setEnabled(true);
                 break;
                 
             case "oferecerCartaSaidaLivre":
