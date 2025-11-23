@@ -313,7 +313,7 @@ public class HistoricoJogo {
             }
             
             // Verificar e tratar jogadores com saldo negativo após carregar
-            Banco banco = model.getBanco();
+            Banco banco = Banco.getInstance();
             for (Jogador j : jogadores) {
                 if (j.getSaldo() < 0) {
                     j.tratarFalencia(banco);

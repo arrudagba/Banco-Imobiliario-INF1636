@@ -13,7 +13,7 @@ public class ModelFacade {
     private Carta ultimaCartaSacada;
 
     private ModelFacade() {
-        this.banco = new Banco();
+        this.banco = Banco.getInstance();
         this.tabuleiro = new Tabuleiro();
         this.jogadores = new ArrayList<>();
         this.rng = new Random();

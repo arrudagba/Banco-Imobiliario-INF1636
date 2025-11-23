@@ -4,12 +4,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Banco {
+    private static Banco instance;
     private int saldo;
     private List<CasaPropriedade> propriedadesDisponiveis;
     
-    public Banco() {
+    private Banco() {
         this.saldo = 200000;
         this.propriedadesDisponiveis = new ArrayList<>();
+    }
+    
+    public static Banco getInstance() {
+        if (instance == null) {
+            instance = new Banco();
+        }
+        return instance;
     }
     
     public int getSaldo() {

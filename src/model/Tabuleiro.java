@@ -8,13 +8,13 @@ public class Tabuleiro {
     private final Banco banco;
 
     public Tabuleiro() {
-        this.banco = new Banco();          // inicializa o banco
+        this.banco = Banco.getInstance();  // usa singleton
         inicializarTabuleiro();
     }
 
     private void inicializarTabuleiro() {
     	// Índices 0-39 (40 casas no total)
-        casas.add(new CasaInicio(0, "PARTIDA", banco));                          // 0
+        casas.add(new CasaInicio(0, "PARTIDA"));                                 // 0
         casas.add(new CasaPropriedade(1, "Leblon", 100));                        // 1
         casas.add(new CasaSorteReves(2, "Sorte ou Revés"));                      // 2
         casas.add(new CasaPropriedade(3, "Av. Presidente Vargas", 60));          // 3
@@ -40,7 +40,7 @@ public class Tabuleiro {
         casas.add(new CasaPropriedade(21, "Flamengo", 120));                     // 21
         casas.add(new CasaSorteReves(22, "Sorte ou Revés"));                     // 22
         casas.add(new CasaPropriedade(23, "Botafogo", 100));                     // 23
-        casas.add(new CasaImposto(24, "Imposto de Renda", 200, banco));          // 24
+        casas.add(new CasaImposto(24, "Imposto de Renda", 200));                 // 24
         casas.add(new CasaCompanhia(25, "Companhia de Navegação", 150));         // 25
         casas.add(new CasaPropriedade(26, "Av. Brasil", 160));                   // 26
         casas.add(new CasaSorteReves(27, "Sorte ou Revés"));                     // 27

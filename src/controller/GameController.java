@@ -288,7 +288,7 @@ public class GameController implements ObservadoApi {
     /** Verifica se jogador está com saldo negativo e trata falência */
     private void verificarFalencia(Jogador jogador) {
         if (jogador.getSaldo() < 0) {
-            boolean recuperou = jogador.tratarFalencia(model.getBanco());
+            boolean recuperou = jogador.tratarFalencia(Banco.getInstance());
             if (recuperou) {
                 javax.swing.JOptionPane.showMessageDialog(
                     null,
