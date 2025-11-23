@@ -33,7 +33,7 @@ public class CasaPropriedade extends Casa implements Compravel {
     }
     
     public boolean construirHotel() {
-        if (numCasas >= 1 && !temHotel) {
+        if (numCasas >= 2 && !temHotel) {
             temHotel = true;
             numHotel += 1;
             numCasas = 0;
@@ -59,6 +59,7 @@ public class CasaPropriedade extends Casa implements Compravel {
         double vc = preco * 0.15; // Valor por casa: 15% do território
         double vh = temHotel ? (preco * 0.3) : 0; // Valor do hotel: 30% do território
         
+        // Arredondar corretamente para cima
         return (int) Math.ceil(vb + (vc * numCasas) + vh);
     }
     
@@ -82,7 +83,8 @@ public class CasaPropriedade extends Casa implements Compravel {
             if (jogador.podeComprarPropriedade(this)) {
                 jogador.comprarPropriedade(this);
             }
-        } else if (proprietario != jogador && numCasas > 0) {
+        } else if (proprietario != jogador) {
+            // Cobra aluguel se for de outro jogador (mesmo sem casas/hotel)
             jogador.pagarAluguel(this);
         }
     }

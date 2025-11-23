@@ -84,6 +84,20 @@ public class GameController implements ObservadoApi {
     public void processarJogada() {
         Jogador jogadorAtual = model.getJogadorDaVez();
         
+        // Pular jogador se estiver falido
+        if (jogadorAtual.estaFalido()) {
+            javax.swing.JOptionPane.showMessageDialog(
+                null,
+                jogadorAtual.getNome() + " está falido e não pode jogar!",
+                "Jogador Falido",
+                javax.swing.JOptionPane.INFORMATION_MESSAGE
+            );
+            model.passarVez(false);
+            notifica("passouVez");
+            notifica("estadoAtualizado");
+            return;
+        }
+        
         // Verificar se está na prisão
         if (jogadorAtual.isPreso()) {
             tratarJogadorNaPrisao(jogadorAtual);
@@ -211,14 +225,17 @@ public class GameController implements ObservadoApi {
         switch (tipo) {
             case PROPRIEDADE:
                 notifica("cairamPropriedade");
+                verificarFalencia(jogador);
                 break;
                 
             case COMPANHIA:
                 notifica("cairamCompanhia");
+                verificarFalencia(jogador);
                 break;
                 
             case SORTE_REVES:
                 processarCasaSorteReves(jogador);
+                verificarFalencia(jogador);
                 break;
                 
             case VA_PARA_PRISAO:
@@ -229,6 +246,7 @@ public class GameController implements ObservadoApi {
             case IMPOSTO:
                 casa.executarAcao(jogador);
                 notifica("pagouImposto");
+                verificarFalencia(jogador);
                 break;
                 
             case RECEBIMENTO:
@@ -263,6 +281,28 @@ public class GameController implements ObservadoApi {
                 notifica("cartaSaidaLivre");
             } else if (carta.getValor() != 0) {
                 notifica("cartaMonetaria");
+            }
+        }
+    }
+    
+    /** Verifica se jogador está com saldo negativo e trata falência */
+    private void verificarFalencia(Jogador jogador) {
+        if (jogador.getSaldo() < 0) {
+            boolean recuperou = jogador.tratarFalencia(model.getBanco());
+            if (recuperou) {
+                javax.swing.JOptionPane.showMessageDialog(
+                    null,
+                    jogador.getNome() + " estava em dívida!\nTodas as propriedades foram vendidas ao banco.\nSaldo atual: $" + jogador.getSaldo(),
+                    "Dívida Quitada",
+                    javax.swing.JOptionPane.WARNING_MESSAGE
+                );
+            } else {
+                javax.swing.JOptionPane.showMessageDialog(
+                    null,
+                    jogador.getNome() + " está FALIDO!\nNão conseguiu quitar suas dívidas mesmo vendendo todas as propriedades.\nSaldo final: $" + jogador.getSaldo(),
+                    "Falência!",
+                    javax.swing.JOptionPane.ERROR_MESSAGE
+                );
             }
         }
     }

@@ -44,8 +44,8 @@ public class Jogador {
     public void creditar(int valor) { this.saldo += valor; }
     
     public boolean debitar(int valor) {
-            saldo -= valor;
-            return true;
+        saldo -= valor;
+        return true;
     }
     
     public void addPropriedade(CasaPropriedade propriedade) {
@@ -109,12 +109,11 @@ public class Jogador {
     }
     
     public boolean tratarFalencia(Banco banco) {
+        // Vende todas as propriedades por metade do valor
         for (CasaPropriedade propriedade : new ArrayList<>(propriedades)) {
             venderPropriedadeParaBanco(propriedade, banco);
-            if (saldo >= 0) {
-                return true;
-            }
         }
+        // Se ainda estiver negativo, está falido
         return saldo >= 0;
     }
     

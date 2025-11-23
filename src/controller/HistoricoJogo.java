@@ -312,6 +312,14 @@ public class HistoricoJogo {
                 }
             }
             
+            // Verificar e tratar jogadores com saldo negativo após carregar
+            Banco banco = model.getBanco();
+            for (Jogador j : jogadores) {
+                if (j.getSaldo() < 0) {
+                    j.tratarFalencia(banco);
+                }
+            }
+            
             // Notificar View para atualizar interface com o jogador correto
             controller.notifica("estadoAtualizado");
             
