@@ -1,8 +1,9 @@
 package controller;
 
-import model.ModelFacade;
+import model.*;
 import java.io.*;
 import java.nio.file.*;
+import java.util.List;
 
 /**
  * Classe responsável por salvar e carregar partidas
@@ -18,32 +19,104 @@ public class HistoricoJogo {
     public static boolean salvarPartida(String caminhoArquivo, boolean modoManual) {
         try {
             ModelFacade model = ModelFacade.getInstance();
-            ModelFacade.SaveState estado = model.snapshot();
+            Tabuleiro tabuleiro = model.getTabuleiro();
+            List<Jogador> jogadores = model.getJogadores();
             
             StringBuilder sb = new StringBuilder();
             
-            // Linha 1: Modo de jogo
-            sb.append("MODO_MANUAL=").append(modoManual ? "true" : "false").append("\n");
+            // ===== CABEÇALHO =====
+            sb.append("# BANCO IMOBILIÁRIO - PARTIDA SALVA\n");
+            sb.append("# Arquivo gerado automaticamente\n\n");
             
-            // Linha 2: Número de jogadores
-            sb.append("NUM_JOGADORES=").append(estado.nJogadores).append("\n");
+            // ===== CONFIGURAÇÕES DO JOGO =====
+            sb.append("[CONFIGURACOES]\n");
+            sb.append("MODO_MANUAL=").append(modoManual ? "1" : "0").append("\n");
+            sb.append("NUM_JOGADORES=").append(jogadores.size()).append("\n");
+            sb.append("JOGADOR_DA_VEZ=").append(model.getJogadorDaVezIndex()).append("\n\n");
             
-            // Linha 3: Jogador da vez
-            sb.append("JOGADOR_DA_VEZ=").append(estado.currentIndex).append("\n");
-            
-            // Linhas seguintes: dados de cada jogador
-            for (int i = 0; i < estado.players.size(); i++) {
-                ModelFacade.PlayerState p = estado.players.get(i);
+            // ===== DADOS DOS JOGADORES =====
+            sb.append("[JOGADORES]\n");
+            for (int i = 0; i < jogadores.size(); i++) {
+                Jogador j = jogadores.get(i);
                 sb.append("JOGADOR_").append(i).append("=");
-                sb.append(p.nome).append("|");
-                sb.append(p.saldo).append("|");
-                sb.append(p.posicao).append("|");
-                sb.append(p.preso ? "1" : "0").append("|");
-                sb.append(p.cartaSaidaLivre ? "1" : "0").append("|");
-                sb.append(p.tentativasPrisao).append("|");
-                sb.append(p.duplasConsecutivas).append("|");
-                sb.append(String.join(";", p.propriedades));
-                sb.append("\n");
+                sb.append(j.getNome()).append("|");
+                sb.append(j.getSaldo()).append("|");
+                sb.append(j.getPosicao()).append("|");
+                sb.append(j.isPreso() ? "1" : "0").append("|");
+                sb.append(j.isCartaSaidaLivre() ? "1" : "0").append("|");
+                sb.append(j.getTentativasPrisao()).append("|");
+                sb.append(j.getDuplasConsecutivas()).append("\n");
+            }
+            sb.append("\n");
+            
+            // ===== PROPRIEDADES =====
+            sb.append("[PROPRIEDADES]\n");
+            sb.append("# Formato: POSICAO|NOME|PRECO|PROPRIETARIO|NUM_CASAS|TEM_HOTEL\n");
+            for (int pos = 0; pos < tabuleiro.getTamanho(); pos++) {
+                Casa casa = tabuleiro.getCasa(pos);
+                if (casa instanceof CasaPropriedade) {
+                    CasaPropriedade prop = (CasaPropriedade) casa;
+                    sb.append("PROP_").append(pos).append("=");
+                    sb.append(pos).append("|");
+                    sb.append(prop.getNome()).append("|");
+                    sb.append(prop.getPreco()).append("|");
+                    
+                    // Nome do proprietário ou "NENHUM"
+                    if (prop.getProprietario() != null) {
+                        sb.append(prop.getProprietario().getNome());
+                    } else {
+                        sb.append("NENHUM");
+                    }
+                    sb.append("|");
+                    sb.append(prop.getNumCasas()).append("|");
+                    sb.append(prop.isTemHotel() ? "1" : "0").append("\n");
+                }
+            }
+            sb.append("\n");
+            
+            // ===== COMPANHIAS =====
+            sb.append("[COMPANHIAS]\n");
+            sb.append("# Formato: POSICAO|NOME|PRECO|PROPRIETARIO\n");
+            for (int pos = 0; pos < tabuleiro.getTamanho(); pos++) {
+                Casa casa = tabuleiro.getCasa(pos);
+                if (casa instanceof CasaCompanhia) {
+                    CasaCompanhia comp = (CasaCompanhia) casa;
+                    sb.append("COMP_").append(pos).append("=");
+                    sb.append(pos).append("|");
+                    sb.append(comp.getNome()).append("|");
+                    sb.append(comp.getPreco()).append("|");
+                    
+                    // Nome do proprietário ou "NENHUM"
+                    if (comp.getProprietario() != null) {
+                        sb.append(comp.getProprietario().getNome());
+                    } else {
+                        sb.append("NENHUM");
+                    }
+                    sb.append("\n");
+                }
+            }
+            sb.append("\n");
+            
+            // ===== CARTAS ESPECIAIS =====
+            sb.append("[CARTAS_ESPECIAIS]\n");
+            sb.append("# Jogadores com carta de saída livre da prisão\n");
+            for (int i = 0; i < jogadores.size(); i++) {
+                Jogador j = jogadores.get(i);
+                if (j.isCartaSaidaLivre()) {
+                    sb.append("CARTA_SAIDA_LIVRE=").append(j.getNome()).append("\n");
+                }
+            }
+            sb.append("\n");
+            
+            // ===== ESTATÍSTICAS =====
+            sb.append("[ESTATISTICAS]\n");
+            for (int i = 0; i < jogadores.size(); i++) {
+                Jogador j = jogadores.get(i);
+                sb.append("STAT_").append(i).append("=");
+                sb.append(j.getNome()).append("|");
+                sb.append("Propriedades: ").append(j.getPropriedades().size()).append("|");
+                sb.append("Posição: ").append(j.getPosicao()).append("|");
+                sb.append("Status: ").append(j.isPreso() ? "PRESO" : "LIVRE").append("\n");
             }
             
             Files.writeString(Paths.get(caminhoArquivo), sb.toString());
@@ -70,44 +143,60 @@ public class HistoricoJogo {
             int numJogadores = 0;
             int jogadorDaVez = 0;
             String[] nomes = null;
-            ModelFacade.SaveState estado = new ModelFacade.SaveState();
+            int[] saldos = null;
+            int[] posicoes = null;
+            boolean[] presos = null;
+            boolean[] cartasSaidaLivre = null;
+            int[] tentativasPrisao = null;
+            int[] duplasConsecutivas = null;
+            
+            String secaoAtual = "";
             
             for (String linha : linhas) {
-                if (linha.startsWith("MODO_MANUAL=")) {
-                    modoManual = linha.substring(12).equals("true");
+                linha = linha.trim();
+                
+                // Ignorar comentários e linhas vazias
+                if (linha.isEmpty() || linha.startsWith("#")) continue;
+                
+                // Detectar seções
+                if (linha.startsWith("[")) {
+                    secaoAtual = linha;
+                    continue;
                 }
-                else if (linha.startsWith("NUM_JOGADORES=")) {
-                    numJogadores = Integer.parseInt(linha.substring(14));
-                    nomes = new String[numJogadores];
-                    estado.nJogadores = numJogadores;
+                
+                // Processar configurações
+                if (secaoAtual.equals("[CONFIGURACOES]")) {
+                    if (linha.startsWith("MODO_MANUAL=")) {
+                        modoManual = linha.substring(12).equals("1");
+                    }
+                    else if (linha.startsWith("NUM_JOGADORES=")) {
+                        numJogadores = Integer.parseInt(linha.substring(14));
+                        nomes = new String[numJogadores];
+                        saldos = new int[numJogadores];
+                        posicoes = new int[numJogadores];
+                        presos = new boolean[numJogadores];
+                        cartasSaidaLivre = new boolean[numJogadores];
+                        tentativasPrisao = new int[numJogadores];
+                        duplasConsecutivas = new int[numJogadores];
+                    }
+                    else if (linha.startsWith("JOGADOR_DA_VEZ=")) {
+                        jogadorDaVez = Integer.parseInt(linha.substring(15));
+                    }
                 }
-                else if (linha.startsWith("JOGADOR_DA_VEZ=")) {
-                    jogadorDaVez = Integer.parseInt(linha.substring(15));
-                    estado.currentIndex = jogadorDaVez;
-                }
-                else if (linha.startsWith("JOGADOR_")) {
+                
+                // Processar jogadores
+                else if (secaoAtual.equals("[JOGADORES]") && linha.startsWith("JOGADOR_")) {
                     int idx = Integer.parseInt(linha.substring(8, linha.indexOf('=')));
                     String dados = linha.substring(linha.indexOf('=') + 1);
                     String[] partes = dados.split("\\|");
                     
-                    ModelFacade.PlayerState ps = new ModelFacade.PlayerState();
-                    ps.nome = partes[0];
-                    ps.saldo = Integer.parseInt(partes[1]);
-                    ps.posicao = Integer.parseInt(partes[2]);
-                    ps.preso = partes[3].equals("1");
-                    ps.cartaSaidaLivre = partes[4].equals("1");
-                    ps.tentativasPrisao = Integer.parseInt(partes[5]);
-                    ps.duplasConsecutivas = Integer.parseInt(partes[6]);
-                    
-                    if (partes.length > 7 && !partes[7].isEmpty()) {
-                        String[] props = partes[7].split(";");
-                        for (String prop : props) {
-                            ps.propriedades.add(prop);
-                        }
-                    }
-                    
-                    nomes[idx] = ps.nome;
-                    estado.players.add(ps);
+                    nomes[idx] = partes[0];
+                    saldos[idx] = Integer.parseInt(partes[1]);
+                    posicoes[idx] = Integer.parseInt(partes[2]);
+                    presos[idx] = partes[3].equals("1");
+                    cartasSaidaLivre[idx] = partes[4].equals("1");
+                    tentativasPrisao[idx] = Integer.parseInt(partes[5]);
+                    duplasConsecutivas[idx] = Integer.parseInt(partes[6]);
                 }
             }
             
@@ -115,11 +204,113 @@ public class HistoricoJogo {
                 return false;
             }
             
-            // Inicializar partida com dados carregados
+            // IMPORTANTE: Configurar modo manual ANTES de inicializar a partida
             controller.setModoManual(modoManual);
+            
+            // Inicializar partida
             ModelFacade model = ModelFacade.getInstance();
             model.iniciarPartida(nomes, jogadorDaVez);
-            model.restaurarEstado(estado);
+            
+            // Restaurar estados dos jogadores
+            List<Jogador> jogadores = model.getJogadores();
+            for (int i = 0; i < numJogadores && i < jogadores.size(); i++) {
+                Jogador j = jogadores.get(i);
+                
+                // Ajustar saldo
+                int diferenca = saldos[i] - j.getSaldo();
+                if (diferenca > 0) {
+                    j.creditar(diferenca);
+                } else if (diferenca < 0) {
+                    j.debitar(Math.abs(diferenca));
+                }
+                
+                j.setPosicao(posicoes[i]);
+                j.setPreso(presos[i]);
+                j.setCartaSaidaLivre(cartasSaidaLivre[i]);
+                j.setTentativasPrisao(tentativasPrisao[i]);
+                j.setDuplasConsecutivas(duplasConsecutivas[i]);
+            }
+            
+            // Restaurar propriedades e companhias
+            Tabuleiro tabuleiro = model.getTabuleiro();
+            secaoAtual = "";
+            
+            for (String linha : linhas) {
+                linha = linha.trim();
+                if (linha.isEmpty() || linha.startsWith("#")) continue;
+                if (linha.startsWith("[")) {
+                    secaoAtual = linha;
+                    continue;
+                }
+                
+                // Restaurar propriedades
+                if (secaoAtual.equals("[PROPRIEDADES]") && linha.startsWith("PROP_")) {
+                    String dados = linha.substring(linha.indexOf('=') + 1);
+                    String[] partes = dados.split("\\|");
+                    
+                    int pos = Integer.parseInt(partes[0]);
+                    String nomeProprietario = partes[3];
+                    int numCasas = Integer.parseInt(partes[4]);
+                    boolean temHotel = partes[5].equals("1");
+                    
+                    Casa casa = tabuleiro.getCasa(pos);
+                    if (casa instanceof CasaPropriedade && !nomeProprietario.equals("NENHUM")) {
+                        CasaPropriedade prop = (CasaPropriedade) casa;
+                        
+                        // Encontrar jogador proprietário
+                        for (Jogador j : jogadores) {
+                            if (j.getNome().equals(nomeProprietario)) {
+                                prop.setProprietario(j);
+                                j.addPropriedade(prop);
+                                
+                                // Restaurar casas e hotéis
+                                for (int k = 0; k < numCasas; k++) {
+                                    prop.construirCasa();
+                                }
+                                if (temHotel) {
+                                    prop.construirHotel();
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                // Restaurar companhias
+                else if (secaoAtual.equals("[COMPANHIAS]") && linha.startsWith("COMP_")) {
+                    String dados = linha.substring(linha.indexOf('=') + 1);
+                    String[] partes = dados.split("\\|");
+                    
+                    int pos = Integer.parseInt(partes[0]);
+                    String nomeProprietario = partes[3];
+                    
+                    Casa casa = tabuleiro.getCasa(pos);
+                    if (casa instanceof CasaCompanhia && !nomeProprietario.equals("NENHUM")) {
+                        CasaCompanhia comp = (CasaCompanhia) casa;
+                        
+                        // Encontrar jogador proprietário
+                        for (Jogador j : jogadores) {
+                            if (j.getNome().equals(nomeProprietario)) {
+                                comp.setProprietario(j);
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                // Restaurar cartas especiais
+                else if (secaoAtual.equals("[CARTAS_ESPECIAIS]") && linha.startsWith("CARTA_SAIDA_LIVRE=")) {
+                    String nomeJogador = linha.substring(18); // Remove "CARTA_SAIDA_LIVRE="
+                    
+                    // Encontrar jogador e dar a carta
+                    for (Jogador j : jogadores) {
+                        if (j.getNome().equals(nomeJogador)) {
+                            j.setCartaSaidaLivre(true);
+                            break;
+                        }
+                    }
+                }
+            }
             
             return true;
             
