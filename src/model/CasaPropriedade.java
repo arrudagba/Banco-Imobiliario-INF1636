@@ -33,10 +33,10 @@ public class CasaPropriedade extends Casa implements Compravel {
     }
     
     public boolean construirHotel() {
-        if (numCasas >= 2 && !temHotel) {
+        if (numCasas >= 1 && !temHotel && numHotel < 1) {
             temHotel = true;
-            numHotel += 1;
-            numCasas = 0;
+            numHotel = 1;
+            // Casas permanecem na propriedade
             return true;
         }
         return false;

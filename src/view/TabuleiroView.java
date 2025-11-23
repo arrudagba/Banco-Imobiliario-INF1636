@@ -451,10 +451,19 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener, Obse
             
             // Pode oferecer opção de construir casa/hotel
             if (jogador.getSaldo() >= prop.getPreco()) {
-                String[] opcoes = {"Não fazer nada", "Construir casa", "Construir hotel"};
+                // Determinar opções disponíveis baseado em casas e hotel
+                String[] opcoes;
+                if (prop.getNumCasas() >= 1 && !prop.isTemHotel()) {
+                    // Pode construir casa ou hotel
+                    opcoes = new String[]{"Não fazer nada", "Construir casa", "Construir hotel"};
+                } else {
+                    // Só pode construir casa
+                    opcoes = new String[]{"Não fazer nada", "Construir casa"};
+                }
+                
                 int resp = JOptionPane.showOptionDialog(
                     frame,
-                    "O que deseja fazer com " + prop.getNome() + "?",
+                    "O que deseja fazer com " + prop.getNome() + "?\nCasas: " + prop.getNumCasas() + " | Hotel: " + (prop.isTemHotel() ? "Sim" : "Não"),
                     "Sua propriedade",
                     JOptionPane.DEFAULT_OPTION,
                     JOptionPane.QUESTION_MESSAGE,
@@ -465,17 +474,17 @@ public class TabuleiroView extends JPanel implements Runnable, KeyListener, Obse
                 
                 if (resp == 1) { // Construir casa
                     if (prop.construirCasa()) {
-                        jogador.debitar(prop.getPreco());
+                        jogador.debitar(prop.getCustoCasa());
                         addNotificacao("Construiu 1 casa em " + prop.getNome());
                     } else {
-                        addNotificacao("Não pode construir mais casas");
+                        addNotificacao("Não pode construir mais casas (máximo 4)");
                     }
-                } else if (resp == 2) { // Construir hotel
+                } else if (resp == 2 && opcoes.length > 2) { // Construir hotel (só disponível se tiver opção)
                     if (prop.construirHotel()) {
-                        jogador.debitar(prop.getPreco());
+                        jogador.debitar(prop.getCustoHotel());
                         addNotificacao("Construiu 1 hotel em " + prop.getNome());
                     } else {
-                        addNotificacao("Precisa de pelo menos 1 casa para construir hotel");
+                        addNotificacao("Precisa de pelo menos 1 casa para construir hotel ou já tem 1 hotel");
                     }
                 }
             }
